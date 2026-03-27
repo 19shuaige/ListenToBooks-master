@@ -13,6 +13,7 @@ export default {
   onShow: function () {},
   onHide: function () {},
 };
+
 </script>
 <style lang="scss">
 /* 加载阿里图标字体 */
