@@ -1,6 +1,10 @@
 <template>
-	<view>
-		<view class="gui-relative" style="background-color: #7d7d4b;">
+	<view class="player-page-wrapper">
+		<!-- 动态模糊背景 -->
+		<view class="player-bg" :style="{ backgroundImage: 'url(' + trackInfo?.coverUrl + ')' }"></view>
+		<view class="player-bg-mask glass-effect-dark"></view>
+
+		<view class="gui-relative player-content" style="z-index: 1;">
 			<view class="gui-p-t-40 gui-flex gui-row">
 				<view class="gui-flex gui-flex1 gui-row gui-justify-content-start gui-p-l-20 gui-align-items-center">
 					<view class="gui-icons gui-color-white  gui-m-r-40" @click="handleJump">&#xe603;</view>
@@ -24,18 +28,15 @@
 			<swiper class="tab-card-body" :current="currentIndex" :style="{ height: swiperHeight + 'px' }">
 				<swiper-item>
 					<scroll-view scroll-y :style="{ height: scrollHeight  + 'px' }">
-						<view class="gui-relative gui-flex gui-justify-content-center gui-m-l-100 gui-m-r-100 gui-m-t-30 gui-m-b-30">
-							<view
-								class="gui-flex gui-absolute-lb gui-bg-black-opacity7 gui-p-l-5 gui-p-r-5 gui-text-small gui-color-white gui-p-t-5 gui-p-b-5 gui-p-l-20 gui-p-r-20"
-							>
-								<text class="gui-icons gui-block gui-color-drak gui-m-r-5 gui-p-t-5">&#xe649;</text>
-								<text>{{ trackStaVo?.playStatNum }}</text>
+						<view class="gui-relative gui-flex gui-justify-content-center gui-m-l-100 gui-m-r-100 gui-m-t-30 gui-m-b-30" style="padding-top: 60rpx;">
+							<!-- CD唱片效果 -->
+							<view class="cd-container" :class="[audios.playStatus ? 'cd-spin' : 'cd-spin cd-spin-paused']">
+								<image
+									class="cd-cover"
+									mode="aspectFill"
+									:src="trackInfo?.coverUrl"
+								></image>
 							</view>
-							<image
-								class="gui-border-radius"
-								mode="aspectFill"
-								:src="trackInfo?.coverUrl"
-							></image>
 						</view>
 
 						<view class="gui-flex gui-column gui-align-items-center gui-justify-content-center  gui-m-l-50 gui-m-r-50 gui-m-t-30 gui-m-b-30">
@@ -619,6 +620,59 @@ onMounted(() => {
 </script>
 
 <style lang="scss">
+.player-page-wrapper {
+	position: relative;
+	width: 100vw;
+	height: 100vh;
+	overflow: hidden;
+	background-color: #2c2c2c;
+}
+.player-bg {
+	position: absolute;
+	top: -10%;
+	left: -10%;
+	width: 120%;
+	height: 120%;
+	background-size: cover;
+	background-position: center;
+	background-repeat: no-repeat;
+	filter: blur(40px) brightness(0.6);
+	transform: scale(1.2);
+	z-index: 0;
+}
+.player-bg-mask {
+	position: absolute;
+	top: 0;
+	left: 0;
+	width: 100%;
+	height: 100%;
+	z-index: 0;
+}
+.player-content {
+	position: relative;
+	z-index: 1;
+	height: 100%;
+	display: flex;
+	flex-direction: column;
+}
+.cd-container {
+	width: 500rpx;
+	height: 500rpx;
+	border-radius: 50%;
+	background: rgba(0, 0, 0, 0.2);
+	border: 16rpx solid rgba(255, 255, 255, 0.15);
+	box-shadow: 0 20rpx 50rpx rgba(0, 0, 0, 0.5);
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	overflow: hidden;
+}
+.cd-cover {
+	width: 100%;
+	height: 100%;
+	border-radius: 50%;
+}
+
 .gui-small-avatar {
 	width: 50rpx;
 	height: 50rpx;

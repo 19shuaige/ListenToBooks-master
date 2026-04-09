@@ -59,7 +59,8 @@
 		<text 
 		class="gui-search-icon gui-icons gui-block gui-text-center gui-color-gray" 
 		v-if="inputVal.length > 0 && clearBtn" 
-		@tap.stop="clearKwd" 
+		@tap.stop="clearKwdWithAnim"
+		:class="[isClearing ? 'search-clear-anim' : '']"
 		:style="{
 			fontSize:iconFontSize, 
 			lineHeight:height, 
@@ -91,18 +92,26 @@ export default{
 	},
 	data() {
 		return {
-			inputVal : ''
+			inputVal : '',
+			isClearing: false
 		}
 	},
 	created: function (){
 		this.inputVal = this.kwd;
 	},
 	watch:{
-		kwd : function(val, vo){
+		kwd : function (val, oldVal) {
 			this.inputVal = val;
 		}
 	},
 	methods:{
+		clearKwdWithAnim: function() {
+			this.isClearing = true;
+			setTimeout(() => {
+				this.clearKwd();
+				this.isClearing = false;
+			}, 200);
+		},
 		clearKwd : function () {
 			this.inputVal = '';
 			this.$emit('clear', '');

@@ -11,26 +11,26 @@
 		</template>
 		<template v-slot:gBody>
 			<scroll-view
-				class="gui-bg-white gui-dark-bg-level-3 gui-border-box mianImgBg gui-bg-brown-linear-gradient gui-p-30"
+				class="gui-bg-white gui-dark-bg-level-3 gui-border-box mianImgBg gui-bg-brown-linear-gradient gui-p-30 detail-scroll-view"
 				:scroll-y="true"
 				:show-scrollbar="false"
 				style="height: 100vh"
 			>
-				<view class="gui-margin-top gui-flex gui-row gui-space-between">
-					<view class="gui-dark-bg-level-3 gui-color-gray">
+				<view class="gui-margin-top gui-flex gui-row gui-space-between animate-fade-up">
+					<view class="gui-dark-bg-level-3 gui-color-gray image-wrapper">
 						<image
-							class="gui-album-img"
+							class="gui-album-img premium-shadow"
 							mode="aspectFill"
 							:src="albumDetailInfo.albumInfo.coverUrl"
 						></image>
 					</view>
-					<view class="gui-flex gui-column gui-flex1 gui-m-l-20" style="width: 388rpx">
-						<text class="gui-color-white" style="font-size: 38rpx">{{ albumDetailInfo.albumInfo.albumTitle }}</text>
-						<view class="gui-m-t-10 gui-flex gui-row gui-wrap">
+					<view class="gui-flex gui-column gui-flex1 gui-m-l-30" style="width: 388rpx">
+						<text class="gui-color-white album-title">{{ albumDetailInfo.albumInfo.albumTitle }}</text>
+						<view class="gui-m-t-20 gui-flex gui-row gui-wrap">
 							<gui-tags
 								:text="albumDetailInfo.baseCategoryView[`category${n}Name`]"
 								:size="22"
-								:customClass="['gui-bg-black-opacity2', 'gui-color-white', 'gui-m-r-5', 'gui-m-b-5']"
+								:customClass="['glass-effect-dark', 'gui-color-white', 'gui-m-r-10', 'gui-m-b-10', 'tag-rounded']"
 								v-for="n in 3"
 								:key="n"
 							></gui-tags>
@@ -38,72 +38,65 @@
 					</view>
 				</view>
 
-				<view class="gui-flex gui-row gui-space-between gui-color-white gui-text-center gui-m-t-30">
-					<view class="gui-flex gui-column">
-						<text class="gui-text-brown-light">
-							<text class="iconfont">&#xe651;</text>
-							<text class="gui-text-small">{{albumDetailInfo.baseCategoryView.category1Name}}</text>
-							<text class="iconfont">&#xe650;</text>
+				<view class="gui-flex gui-row gui-space-between gui-color-white gui-text-center gui-m-t-40 stat-container animate-fade-up" style="animation-delay: 0.1s;">
+					<view class="gui-flex gui-column stat-item">
+						<text class="gui-text-brown-light icon-wrapper">
+							<text class="iconfont" style="font-size: 32rpx;">&#xe651;</text>
+							<text class="gui-text-small gui-m-l-5 gui-m-r-5" style="font-weight: bold;">{{albumDetailInfo.baseCategoryView.category1Name}}</text>
+							<text class="iconfont" style="font-size: 32rpx;">&#xe650;</text>
 						</text>
 					</view>
-					<view class="gui-flex gui-column">
-						<text>
+					<view class="gui-flex gui-column stat-item">
+						<text class="stat-num">
 							{{ albumDetailInfo.albumStatVo.commentStatNum || 0}}
-							<text class="gui-text-small gui-text-brown">万</text>
+							<text class="gui-text-small stat-unit">万</text>
 						</text>
-						<text class="gui-text-small gui-text-brown">评论数</text>
+						<text class="gui-text-small stat-label">评论数</text>
 					</view>
-					<view class="gui-flex gui-column">
-						<text>
+					<view class="gui-flex gui-column stat-item">
+						<text class="stat-num">
 							{{ albumDetailInfo.albumStatVo.playStatNum || 0}}
-							<text class="gui-text-small gui-text-brown">亿</text>
+							<text class="gui-text-small stat-unit">亿</text>
 						</text>
-						<text class="gui-text-small gui-text-brown">播放量</text>
+						<text class="gui-text-small stat-label">播放量</text>
 					</view>
-					<view class="gui-flex gui-column">
-						<text>
+					<view class="gui-flex gui-column stat-item">
+						<text class="stat-num">
 							{{ albumDetailInfo.albumStatVo.subscribeStatNum || 0}}
-							<text class="gui-text-small gui-text-brown">万</text>
+							<text class="gui-text-small stat-unit">万</text>
 						</text>
-						<text class="gui-text-small gui-text-brown">订阅量</text>
-					</view>
-					<view class="gui-flex gui-column">
-						<text>
-							{{ albumDetailInfo.albumStatVo.buyStatNum || 0}}
-							<text class="gui-text-small gui-text-brown">万</text>
-						</text>
-						<text class="gui-text-small gui-text-brown">购买量</text>
+						<text class="gui-text-small stat-label">订阅量</text>
 					</view>
 				</view>
 
-				<view class="gui-m-t-30"><text class="gui-text-brown">{{albumDetailInfo.albumInfo.albumIntro}}</text></view>
+				<view class="gui-m-t-30 animate-fade-up" style="animation-delay: 0.1s;"><text class="gui-text-brown">{{albumDetailInfo.albumInfo.albumIntro}}</text></view>
 
-				<view class="gui-m-t-20 gui-border-box gui-bg-black-opacity2 gui-p-20" style="border-radius: 20rpx" @click="">
-					<view class="gui-flex gui-column gui-flex1 gui-color-white"><text>主播介绍</text></view>
+				<view class="gui-m-t-20 gui-border-box glass-effect-dark gui-p-20 soft-card animate-fade-up" style="animation-delay: 0.2s;" @click="">
+					<view class="gui-flex gui-column gui-flex1 gui-color-white"><text style="font-weight: 600; font-size: 32rpx;">主播介绍</text></view>
 					<view class="gui-flex gui-m-t-20">
 						<view class="gui-flex1">
 							<view class="gui-flex">
 								<image
 									mode="aspectFill"
 									:src="albumDetailInfo.announcer.avatarUrl"
-									class="gui-album-avatar"
+									class="gui-album-avatar premium-shadow"
 								></image>
-								<view class="gui-flex gui-column gui-m-l-20">
-									<text class="gui-color-white">{{ albumDetailInfo.announcer.nickname }}</text>
-									<text class="gui-text-brown gui-text-small gui-m-t-20">已被2331.4万人关注</text>
+								<view class="gui-flex gui-column gui-m-l-20 gui-justify-content-center">
+									<text class="gui-color-white" style="font-size: 30rpx; font-weight: 500;">{{ albumDetailInfo.announcer.nickname }}</text>
+									<text class="gui-text-brown gui-text-small gui-m-t-10">已被2331.4万人关注</text>
 								</view>
 							</view>
 						</view>
-						<view class="gui-bg-black-opacity1 gui-text-center" style="width: 150rpx; height: 60rpx; line-height: 60rpx; border-radius: 20rpx">
-							<text class="gui-icons gui-color-white gui-text-small">&#xe6c7; 关注</text>
+						<view class="premium-badge gui-text-center flex-center btn-hover" style="width: 150rpx; height: 60rpx; border-radius: 30rpx !important;">
+							<text class="gui-icons gui-color-white gui-text-small" style="font-weight: bold;">&#xe6c7; 关注</text>
 						</view>
 					</view>
-					<view class="gui-m-t-20 gui-text-brown gui-text-small"><text>喜马人肉故事机!来呀，等你关注。微博求关注呀</text></view>
+					<view class="gui-m-t-20 gui-text-brown gui-text-small" style="line-height: 1.6;"><text>喜马人肉故事机!来呀，等你关注。微博求关注呀</text></view>
 				</view>
 
-				<view class="gui-m-t-30" v-if="albumDetailInfo.albumInfo.albumRichIntro">
-					<view class="gui-text-center"><text class="gui-color-white gui-h3">简介</text></view>
-					<view class="gui-bg-white gui-dark-bg-level-3 gui-m-t-20">
+				<view class="gui-m-t-30 animate-fade-up" style="animation-delay: 0.3s;" v-if="albumDetailInfo.albumInfo.albumRichIntro">
+					<view class="gui-text-center"><text class="gui-color-white gui-h3" style="font-weight: bold; letter-spacing: 4rpx;">简介</text></view>
+					<view class="gui-bg-white gui-dark-bg-level-3 gui-m-t-20 soft-card" style="padding: 20rpx; border-radius: 24rpx; background: rgba(255,255,255,0.9) !important;">
 						<gui-spread class="guiSpread" height="200rpx" :isShrink="true">
 							<mp-html :content="albumDetailInfo.albumInfo.albumRichIntro" />
 						</gui-spread>
@@ -132,38 +125,48 @@
 					:fixed="false">
 					<template #top>
 						<view
-							class="gui-flex gui-space-between gui-align-items-center gui-padding"
+							class="gui-flex gui-space-between gui-align-items-center gui-padding soft-card gui-m-10"
+							style="background: linear-gradient(135deg, #fff 0%, #fff0f5 100%);"
 							>
-							<view class="gui-h4 gui-bold">{{userStore.user.isVip ? '续费会员 优惠多多' : '开通会员 优惠多多'}}</view>
-							<button type="default" class="gui-button gui-bg-red gui-noborder" @click="openAccountPopup">
-								<text class="gui-color-white gui-button-text gui-p-l-20 gui-p-r-20 gui-border-radius">{{userStore.user.isVip ? '立即续费' : '立即开通'}}</text>
+							<view class="gui-h4 gui-bold" style="color: #333;">{{userStore.user.isVip ? '续费会员 优惠多多' : '开通会员 优惠多多'}}</view>
+							<button type="default" class="gui-button premium-badge gui-noborder btn-hover" @click="openAccountPopup" style="height: 60rpx; line-height: 60rpx;">
+								<text class="gui-color-white gui-button-text gui-p-l-30 gui-p-r-30" style="font-weight: bold; border-radius: 30rpx;">{{userStore.user.isVip ? '立即续费' : '立即开通'}}</text>
 							</button>
 						</view>
 						<view class="gui-flex gui-space-between gui-justify-content-center gui-align-items-center gui-m-t-10">
 							<view
 								v-if="false"
 								type="default"
-								class="gui-button gui-bg-black-opacity6 gui-noborder gui-flex1 gui-m-l-20 gui-m-r-20 gui-flex gui-justify-content-center"
+								class="gui-button gui-bg-black-opacity6 gui-noborder gui-flex1 gui-m-l-20 gui-m-r-20 gui-flex gui-justify-content-center btn-hover"
+								style="border-radius: 40rpx; height: 80rpx;"
 								>
 								<text class="gui-icons gui-block gui-m-r-10 gui-text-brown-light">&#xe649;</text>
 								<text class="gui-icons gui-button-text gui-text-brown-light">开始播放</text>
 							</view>
-							<!-- 订阅 -->
 							<view
 								type="default"
-								v-if="albumDetailInfo.albumInfo.isFinished === '0'"
-								class="gui-button gui-bg-black-opacity6 gui-noborder gui-flex1 gui-m-l-20 gui-m-r-20 gui-flex gui-justify-content-center"
-								@click="handleSubscribe"
+								class="gui-button gui-bg-black-opacity6 gui-noborder gui-flex1 gui-m-l-20 gui-m-r-20 gui-flex gui-justify-content-center btn-hover"
+								@click="openBuyPopup"
+								style="border-radius: 40rpx; height: 80rpx;"
 							>
-								<text v-if="isSubscribe" class="gui-icons gui-color-white gui-block gui-m-r-10">&#xe78a;</text>
-								<text v-else class="gui-icons gui-color-white gui-block gui-m-r-10">&#xe625;</text>
-								<text class="gui-icons gui-color-white gui-button-text">{{ isSubscribe ? '取消订阅' : '订阅' }}</text>
+								<text class="gui-icons gui-block gui-m-r-10 gui-color-white">&#xe620;</text>
+								<text class="gui-icons gui-button-text gui-color-white">立即购买</text>
+							</view>
+							<view
+								type="default"
+								class="gui-button gui-bg-black-opacity6 gui-noborder gui-flex1 gui-m-l-20 gui-m-r-20 gui-flex gui-justify-content-center btn-hover"
+								@click="handleSubscribe"
+								style="border-radius: 40rpx; height: 80rpx;"
+							>
+								<text class="gui-icons gui-block gui-m-r-10 gui-color-white" :class="[isSubscribe ? 'gui-color-red' : '']">{{ isSubscribe ? '&#xe600;' : '&#xe6c7;'}}</text>
+								<text class="gui-icons gui-button-text gui-color-white">{{ isSubscribe ? '已订阅' : '订阅'}}</text>
 							</view>
 						</view>
 					</template>
 					<!-- 渲染列表-->
 					<view
-						class="gui-list-items"
+						class="gui-list-items animate-fade-up track-item-hover"
+						:style="{ animationDelay: `${index * 0.05 + 0.1}s` }"
 						:class="item.isChecked ? 'track-item-checked' : ''"
 						v-for="(item,index) in albumTrackList"
 						@click="handleTrackOnClick(index,item)"
@@ -595,6 +598,84 @@ onShow(() => {
 	top: 0;
 	z-index: 1;
 }
+.detail-scroll-view {
+	background: linear-gradient(180deg, #2c3e50 0%, #1a1a2e 100%) !important; /* 更高级的深色渐变背景 */
+}
+.image-wrapper {
+	border-radius: 20rpx;
+	overflow: hidden;
+}
+.premium-shadow {
+	box-shadow: 0 16rpx 40rpx rgba(0, 0, 0, 0.4);
+}
+.album-title {
+	font-size: 42rpx;
+	font-weight: bold;
+	line-height: 1.4;
+	text-shadow: 0 4rpx 8rpx rgba(0,0,0,0.3);
+}
+.tag-rounded {
+	border-radius: 12rpx !important;
+	padding: 6rpx 16rpx !important;
+	border: 1px solid rgba(255,255,255,0.15);
+}
+.stat-container {
+	background: rgba(0, 0, 0, 0.2);
+	border-radius: 24rpx;
+	padding: 30rpx 10rpx;
+	backdrop-filter: blur(10px);
+}
+.stat-item {
+	flex: 1;
+	align-items: center;
+	position: relative;
+}
+.stat-item:not(:last-child)::after {
+	content: '';
+	position: absolute;
+	right: 0;
+	top: 20%;
+	height: 60%;
+	width: 1px;
+	background: rgba(255,255,255,0.1);
+}
+.stat-num {
+	font-size: 36rpx;
+	font-weight: bold;
+	color: #fff;
+	margin-bottom: 8rpx;
+}
+.stat-unit {
+	color: #b3a598;
+	margin-left: 4rpx;
+	font-weight: normal;
+}
+.stat-label {
+	color: #999;
+}
+.icon-wrapper {
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	background: rgba(226, 187, 146, 0.15);
+	padding: 10rpx 20rpx;
+	border-radius: 30rpx;
+}
+.btn-hover {
+	transition: transform 0.2s cubic-bezier(0.25, 0.8, 0.25, 1), box-shadow 0.2s;
+}
+.btn-hover:active {
+	transform: scale(0.92);
+	box-shadow: 0 4rpx 10rpx rgba(0,0,0,0.2) !important;
+}
+.track-item-hover {
+	transition: background-color 0.2s ease, transform 0.1s ease;
+}
+.track-item-hover:active {
+	background-color: rgba(0,0,0,0.02);
+	transform: scale(0.98);
+}
+
 .mainScrollView {
 	position: absolute;
 	left: 0;

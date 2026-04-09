@@ -2,7 +2,8 @@
 <uni-card padding="5rpx" @click="handleGoToDetails">
   <view class="gui-margin-top">
     <view class="gui-card-body gui-flex gui-rows gui-nowrap">
-      <text class="gui-absolute-lt gui-bg-red gui-p-l-5 gui-p-r-5 gui-text-small gui-color-white" style="transform: scale(0.8)">{{ getNameByValue(PAY_TYPE,data.payType) }}</text>
+      <view v-if="rankIndex" class="rank-badge-inner" :class="badgeClass(rankIndex)">{{ rankIndex }}</view>
+      <text class="gui-absolute-lt gui-bg-red gui-p-l-5 gui-p-r-5 gui-text-small gui-color-white breath-light" style="transform: scale(0.8)">{{ getNameByValue(PAY_TYPE,data.payType) }}</text>
       <image
         mode="aspectFill"
         :src="data.coverUrl"
@@ -57,7 +58,19 @@ const props = defineProps({
     required: true,
     default: () => {}
   },
+  rankIndex: {
+    type: Number,
+    default: 0
+  }
 })
+
+const badgeClass = (idx:number) => {
+	if (idx === 1) return 'rank-badge-top1'
+	if (idx === 2) return 'rank-badge-top2'
+	if (idx === 3) return 'rank-badge-top3'
+	return 'rank-badge-normal'
+}
+
 /* 响应式数据 */
 // 分类导航
 
@@ -77,6 +90,50 @@ const replaceTitle = (title: string) => {
 </script>
 
 <style lang="scss" scoped>
+.search-result-item {
+  width: 100%;
+  box-sizing: border-box;
+}
+.cover-wrapper {
+  position: relative;
+}
+
+@keyframes breathBadge {
+  0% { opacity: 0.85; }
+  50% { opacity: 1; box-shadow: 0 0 10rpx rgba(255, 107, 129, 0.4); }
+  100% { opacity: 0.85; }
+}
+.breath-light {
+  animation: breathBadge 2s ease-in-out infinite;
+  z-index: 2;
+}
+
+.rank-badge-inner {
+  position: absolute;
+  left: -12rpx;
+  top: -12rpx;
+  z-index: 3;
+  width: 40rpx;
+  height: 40rpx;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #fff;
+  font-weight: bold;
+  font-size: 24rpx;
+  box-shadow: 0 4rpx 10rpx rgba(0,0,0,0.15);
+  transition: transform 0.25s ease;
+}
+.search-result-item:hover .rank-badge-inner {
+  transform: scale(1.15) rotate(-5deg);
+}
+
+.rank-badge-top1 { background: linear-gradient(135deg, #f6d365 0%, #fda085 100%); }
+.rank-badge-top2 { background: linear-gradient(135deg, #cfd9df 0%, #e2ebf0 100%); color: #333; }
+.rank-badge-top3 { background: linear-gradient(135deg, #d299c2 0%, #fef9d7 100%); color: #333; }
+.rank-badge-normal { background: rgba(0,0,0,0.45); backdrop-filter: blur(4px); }
+
 /* 卡片视图 */
 .gui-card-body{
   padding-bottom:10rpx;

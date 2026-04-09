@@ -8,6 +8,7 @@
 		class="gui-swiper-card" 
 		:indicator-dots="false" 
 		:interval="interval" 
+		:duration="duration"
 		:circular="true" 
 		:autoplay="autoplay" 
 		:current="currentIndex" 
@@ -192,6 +193,7 @@ export default{
 		// #endif
 		interval : { type : Number, default : 5000 },
 		autoplay : { type : Boolean, default : true },
+		duration : { type : Number, default : 450 },
 		currentIndex : { type : Number, default : 0 },
 		opacity:{ type : Number, default:0.66},
 		titleColor:{type:String, default:"#FFFFFF"},

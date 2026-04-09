@@ -1,6 +1,6 @@
 <template>
 	<gui-popup position="bottom" ref="popup">
-		<view class="gui-relative" style="background-color: #7d7d4b;">
+		<view class="gui-relative glass-effect-dark" style="border-top-left-radius: 40rpx; border-top-right-radius: 40rpx; overflow: hidden;">
 			<view class="gui-p-t-50 gui-flex gui-row">
 				<view class="gui-flex gui-flex1 gui-row gui-justify-content-start gui-p-l-20 gui-align-items-center">
 					<view class="gui-icons gui-color-white  gui-m-r-40" @click="closePopup">&#xe603;</view>

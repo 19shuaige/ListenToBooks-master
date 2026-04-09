@@ -1,7 +1,10 @@
 <template>
   <gui-page :customFooter="true" :customHeader="true">
     <template v-slot:gHeader>
-      <view style="height: 44px" class="gui-flex gui-bg-white">
+      <view
+        style="height: 44px; position: relative; z-index: 999;"
+        class="gui-flex rank-top-bar"
+        :class="[headerSolid ? 'rank-top-bar-solid' : 'rank-top-bar-transparent']">
         <view class="gui-flex gui-row gui-wrap gui-align-items-center gui-m-l-20">
           <text class="gui-icons gui-block gui-color-drak gui-p-10 gui-b-50 gui-bg-black-opacity1 gui-m-r-10"
           >&#xe666;</text
@@ -17,8 +20,8 @@
 
     <template v-slot:gFixedTop>
 			<!-- 一级导航 -->
-			<view class="gui-flex gui-m-b-20">
-				<view class="gui-bg-white gui-dark-bg-level-3 gui-p-r-20">
+			<view class="gui-flex gui-m-b-20 rank-nav-bar" :class="[headerSolid ? 'rank-nav-bar-solid' : 'rank-nav-bar-transparent']" style="position: relative; z-index: 998;">
+				<view class="gui-bg-white gui-dark-bg-level-3 gui-p-r-20" style="background: transparent !important; width: 100%; border-radius: 0 0 40rpx 40rpx;">
 					<gui-switch-navigation
 						:items="navItems"
 						:currentIndex="category1NavIndex"
@@ -37,6 +40,7 @@
 		</template>
 
     <template v-slot:gBody>
+      <view class="rank-decor-bg"></view>
       <view style="height:88rpx;"></view>
       <!-- 左侧导航 -->
       <view class="gui-wrapper">
@@ -54,21 +58,24 @@
               :class="[dimension == item.dimension && 'gui-tab-item-active']"
               @tap.stop="switchMenu(item.dimension)"
             >
-              <text class="u-line-1">{{ item.name }}</text>
+              <text class="rank-dimension-text">{{ item.name }}</text>
             </view>
           </scroll-view>
           <scroll-view
           scroll-y
           scroll-with-animation
           class="gui-right-box"
+          @scroll="handleBodyScroll"
           >
             <view v-if="rankList">
-              <SearchResultsItem
-              v-for="(item) in rankList"
-              :data="item"
-              :key="item.id"
-              
-            />
+              <view
+                v-for="(item, idx) in rankList"
+                :key="item.id"
+                class="rank-item-wrap animate-fade-up"
+                :style="{ animationDelay: `${idx * 0.1}s` }"
+              >
+                <SearchResultsItem :data="item" :rankIndex="idx + 1" />
+              </view>
             </view>
 
             <ZPagingEmptyView v-else/>
@@ -114,6 +121,8 @@ const tabbarItems = [
 let scrollTop = ref(0) // tab标题的滚动条位置
 let dimension = ref('hotScore') // 预设当前项的值
 
+const headerSolid = ref(false)
+
 // 监视一级分类索引变化
 watchEffect(() => {
 	if(navItems.value.length){
@@ -129,6 +138,17 @@ const switchMenu = (current:string) => {
   // 请求数据
   dimension.value = current
   getRankList()
+}
+
+const handleBodyScroll = (e:any) => {
+	headerSolid.value = (e?.detail?.scrollTop || 0) >= 20
+}
+
+const badgeClass = (idx:number) => {
+	if (idx === 0) return 'rank-badge-top1'
+	if (idx === 1) return 'rank-badge-top2'
+	if (idx === 2) return 'rank-badge-top3'
+	return 'rank-badge-normal'
 }
 
 
@@ -172,6 +192,45 @@ onMounted(() => {
 </script>
 
 <style scoped lang="scss" >
+.rank-decor-bg {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 520rpx;
+  background: linear-gradient(180deg, #eaf4ff 0%, #f6f6f6 100%);
+  z-index: 0;
+  border-bottom-left-radius: 20%;
+  border-bottom-right-radius: 20%;
+}
+
+.rank-top-bar {
+  transition: background 350ms ease, backdrop-filter 350ms ease, -webkit-backdrop-filter 350ms ease;
+}
+.rank-top-bar-transparent {
+  background: rgba(255, 255, 255, 0.55);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+}
+.rank-top-bar-solid {
+  background: rgba(255, 255, 255, 0.92);
+  backdrop-filter: blur(18px);
+  -webkit-backdrop-filter: blur(18px);
+}
+.rank-nav-bar {
+  transition: background 350ms ease, backdrop-filter 350ms ease, -webkit-backdrop-filter 350ms ease;
+}
+.rank-nav-bar-transparent {
+  background: rgba(255, 255, 255, 0.55);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+}
+.rank-nav-bar-solid {
+  background: rgba(255, 255, 255, 0.92);
+  backdrop-filter: blur(18px);
+  -webkit-backdrop-filter: blur(18px);
+}
+
 .gui-wrapper {
   // height: calc(100vh);
   /* #ifdef H5 */
@@ -185,41 +244,72 @@ onMounted(() => {
   flex: 1;
   display: flex;
   overflow: hidden;
+  position: relative;
+  z-index: 1;
 }
 
 .gui-tab-view {
   width: 200rpx;
   height: 100%;
-  background-color: #f6f6f6;
+  background-color: rgba(255,255,255,0.65);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
 }
 
 .gui-tab-item {
   height: 100rpx;
-  background: #f6f6f6;
+  background: transparent;
   box-sizing: border-box;
   display: flex;
   align-items: center;
-  justify-content: center;
+  justify-content: flex-start;
+  padding: 0 18rpx;
   font-size: 26rpx;
   color: #444;
   font-weight: 400;
   line-height: 1;
 }
 
+.rank-dimension-text {
+  width: 100%;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
 .gui-tab-item-active {
   position: relative;
   color: #000;
   font-weight: 600;
-  background: #fff;
+  background: rgba(255,255,255,0.9);
+  border-radius: 20rpx;
+  margin: 10rpx;
+  box-shadow: 0 10rpx 18rpx rgba(0,0,0,0.06);
+  border: 1px solid rgba(255, 107, 129, 0.18);
 }
 
 .gui-tab-item-active::before {
   content: "";
   position: absolute;
-  border-left: 4px solid red;
-  height: 32rpx;
-  left: 0;
-  top: 39rpx;
+  left: -1px;
+  top: 22rpx;
+  height: 56rpx;
+  width: 8rpx;
+  border-radius: 20rpx;
+  background: linear-gradient(180deg, #ff6b81 0%, #ff4757 100%);
+}
+
+.gui-tab-item-active::after {
+  content: '';
+  position: absolute;
+  right: 16rpx;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 10rpx;
+  height: 10rpx;
+  border-radius: 50%;
+  background: rgba(255, 107, 129, 0.9);
+  box-shadow: 0 0 0 8rpx rgba(255, 107, 129, 0.12);
 }
 
 .gui-tab-view {
@@ -227,8 +317,29 @@ onMounted(() => {
 }
 
 .gui-right-box {
-  background-color:#f6f6f6;
+  background-color: transparent;
+  padding: 10rpx 20rpx;
+  width: 100%;
+  box-sizing: border-box;
+  overflow: hidden;
 }
+
+.rank-item-wrap {
+  position: relative;
+  margin-bottom: 20rpx;
+  transition: transform 0.25s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+  border-radius: 24rpx;
+}
+.rank-item-wrap:hover {
+  transform: translateY(-4rpx);
+  box-shadow: 0 12rpx 24rpx rgba(0,0,0,0.06);
+}
+.rank-item-wrap:active {
+  transform: scale(0.95);
+  box-shadow: 0 4rpx 10rpx rgba(0,0,0,0.04);
+  transition: transform 0.1s ease-out;
+}
+
 
 .gui-page-view {
   padding: 16rpx;
