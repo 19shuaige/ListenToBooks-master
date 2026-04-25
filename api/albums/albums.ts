@@ -176,6 +176,7 @@ class CateGory extends Service {
   getSubscribeAlbums(pageInfo: { page: number, limit: number }) {
     return this.get<PageResponseInterface<SubscribeAlbumsInterface>>({
       url: `/api/album/albumInfo/getUserSubscribeByPage/${pageInfo.page}/${pageInfo.limit}`,
+      silentError: true,
     })
   }
   /**
@@ -185,6 +186,7 @@ class CateGory extends Service {
   getCollectTrack(pageInfo: { page: number, limit: number }) {
     return this.get<PageResponseInterface<CollectTrackInterface>>({
       url: `/api/album/progress/getUserCollectByPage/${pageInfo.page}/${pageInfo.limit}`,
+      silentError: true,
     })
   }
   /**
@@ -194,6 +196,7 @@ class CateGory extends Service {
   getHistoryTrack(pageInfo: { page: number, limit: number }) {
     return this.get<PageResponseInterface<HistoryTrackInterface>>({
       url: `/api/album/progress/getPlayHistoryTrackByPage/${pageInfo.page}/${pageInfo.limit}`,
+      silentError: true,
     })
   }
   /**

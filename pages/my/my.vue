@@ -1,5 +1,5 @@
 <template>
-  <gui-page :customHeader="true" :headerClass="['gui-bg-white']" :customFooter="true">
+  <gui-page :customHeader="true" :customFooter="true">
     <template v-slot:gHeader>
       <view style="height: 44px" class="gui-flex">
         <view class="gui-flex gui-row gui-wrap gui-align-items-center gui-m-l-20">
@@ -16,8 +16,8 @@
     </template>
 
     <template v-slot:gBody>
-      <view class="gui-relative">
-        <view class="gui-list gui-padding gui-bg-white gui-p-b-90">
+      <view class="gui-relative my-page-shell">
+        <view class="gui-list gui-padding gui-p-b-40 my-profile-card">
           <view class="gui-list-items gui-relative">
             <view class="my-avatar-wrap" hover-class="my-avatar-hover" @tap="triggerAvatarWiggle">
               <image
@@ -39,8 +39,8 @@
           </view>
         </view>
 
-        <view class="gui-absolute-lb gui-bg-white gui-creation-live">
-          <view class="gui-flex gui-row gui-nowrap gui-space-around gui-p-t-20">
+        <view class="gui-creation-live">
+          <view class="gui-flex gui-row gui-nowrap gui-space-around">
             <view @click="handleGoToOtherPage('/pages/myWork/myWork')" class="gui-flex gui-row gui-align-items-center animate-fade-up my-entry" style="animation-delay: 0.05s;" hover-class="my-entry-hover">
               <text class="gui-icons gui-h3 gui-color-drak my-entry-icon">&#xe666;</text>
               <text class="gui-p-l-10">创作中心</text>
@@ -53,7 +53,7 @@
         </view>
       </view>
 
-      <view class="gui-flex gui-space-between gui-bg-white gui-dark-bg-level-3 gui-padding gui-m-t-20">
+      <view class="gui-flex gui-space-between gui-padding gui-m-t-20 my-feature-panel">
         <view class="gui-grid-item animate-fade-up my-feature-item my-feature-vip" style="animation-delay: 0.2s;" hover-class="my-feature-hover" @click="handleGoToOtherPage('')">
           <text class="gui-grid-icon gui-icons gui-color-gray my-feature-icon">&#xe634;</text>
           <text class="gui-grid-text gui-icons gui-color-gray">VIP会员</text>
@@ -68,10 +68,10 @@
         </view>
       </view>
 
-      <view class="gui-bg-white gui-dark-bg-level-3 gui-padding">
+      <view class="gui-padding my-content-panel">
         <z-paging
           ref="zPagingRef"
-          :paging-style="{height:'1000rpx'}"
+          :paging-style="{height:'760rpx'}"
           v-model="pageData[pageData.currentPageNav].list"
           @query="getListInfo"
           :fixed="false">
@@ -92,12 +92,23 @@
             <view style="height:20rpx;"></view>
           </template>
           <template #empty>
-            <view class="my-empty">
-              <image class="my-empty-img" mode="aspectFit" src="/static/logo.png"></image>
-              <text class="my-empty-title">{{ pageData.currentPageNav === 'subscribe' ? '暂无订阅' : pageData.currentPageNav === 'collect' ? '暂无收藏' : '暂无历史' }}</text>
-              <text class="my-empty-desc">去首页发现更多精彩内容</text>
-              <view class="my-empty-btn" hover-class="my-empty-btn-hover" @click="handleGoToOtherPage('/pages/index/index')">
-                <text class="my-empty-btn-text">去逛逛</text>
+            <view class="my-empty animate-fade-up">
+              <view class="my-empty-badge">{{ emptyStateConfig.badge }}</view>
+              <!-- 图标区域 -->
+              <view class="my-empty-icon-wrap">
+                <uni-icons v-if="pageData.currentPageNav === 'subscribe'" type="sound-filled" size="46" class="my-empty-icon my-empty-icon-subscribe"></uni-icons>
+                <uni-icons v-else-if="pageData.currentPageNav === 'collect'" type="star-filled" size="46" class="my-empty-icon my-empty-icon-collect"></uni-icons>
+                <uni-icons v-else type="redo-filled" size="46" class="my-empty-icon my-empty-icon-history"></uni-icons>
+                <!-- 装饰性光晕 -->
+                <view class="my-empty-glow"></view>
+              </view>
+              
+              <text class="my-empty-title">{{ emptyStateConfig.title }}</text>
+              <text class="my-empty-desc">{{ emptyStateConfig.desc }}</text>
+              
+              <view class="my-empty-btn gui-flex gui-row gui-align-items-center gui-justify-content-center" hover-class="my-empty-btn-hover" @click="handleEmptyAction">
+                <text class="my-empty-btn-text">{{ emptyStateConfig.buttonText }}</text>
+                <text class="gui-icons my-empty-btn-arrow">&#xe601;</text>
               </view>
             </view>
           </template>
@@ -223,6 +234,37 @@ const usernameColor = computed(() => {
   return `rgb(${r}, ${g}, ${b})`
 })
 
+const pageLoadState = reactive({
+  subscribe: 'idle',
+  collect: 'idle',
+  history: 'idle'
+})
+
+const emptyStateConfig = computed(() => {
+  if (pageData.currentPageNav === 'subscribe') {
+    return {
+      badge: '订阅清单',
+      title: '你还没有订阅任何专辑',
+      desc: '先去首页逛逛，把喜欢的内容加入订阅，更新后就能第一时间听到',
+      buttonText: '去发现专辑'
+    }
+  }
+  if (pageData.currentPageNav === 'collect') {
+    return {
+      badge: '收藏夹',
+      title: '收藏列表还是空的',
+      desc: '听到想反复回味的声音时记得点一下收藏，之后会更方便继续收听',
+      buttonText: '去挑好内容'
+    }
+  }
+  return {
+    badge: '最近播放',
+    title: '暂时还没有收听历史',
+    desc: '开始播放任意专辑后，最近听过的内容都会自动出现在这里',
+    buttonText: '去首页看看'
+  }
+})
+
 const triggerAvatarWiggle = () => {
   avatarWiggle.value = false
   setTimeout(() => {
@@ -256,23 +298,30 @@ const getListInfo = async (page: number, limit: number) => {
     if (pageData.currentPageNav === 'subscribe') {
       // 专辑列表
       const res = await albumsService.getSubscribeAlbums(params)
+      pageLoadState.subscribe = 'success'
       //将请求的结果数组传递给z-paging
       zPagingRef.value.complete(res.data.records);
     } else if (pageData.currentPageNav === 'collect') {
       // 声音列表
       const res = await albumsService.getCollectTrack(params)
+      pageLoadState.collect = 'success'
       //将请求的结果数组传递给z-paging
       zPagingRef.value.complete(res.data.records);
     } else if (pageData.currentPageNav === 'history') {
       // 声音列表
       const res = await albumsService.getHistoryTrack(params)
+      pageLoadState.history = 'success'
       //将请求的结果数组传递给z-paging
       zPagingRef.value.complete(res.data.records);
     }
   } catch (error) {
     console.log(error)
-    zPagingRef.value.complete(false);
+    pageLoadState[pageData.currentPageNav] = 'success'
+    zPagingRef.value.complete([]);
   }
+}
+const handleEmptyAction = () => {
+  handleGoToOtherPage('/pages/index/index')
 }
 // 子组件被删除，触发父组件的删除列表子项事件
 const deleteItem = (id: number | string) => {
@@ -333,7 +382,22 @@ const getLiveRoom = async () => {
   // #endif
 }
 </script>
+<style>
+page {
+  background-color: #f8f9fa;
+}
+</style>
 <style scoped>
+.my-page-shell {
+  background: transparent;
+}
+
+.my-profile-card {
+  position: relative;
+  overflow: visible;
+  background: transparent;
+}
+
 .gui-card-img {
     width: 150rpx;
     height: 150rpx;
@@ -357,6 +421,8 @@ const getLiveRoom = async () => {
 .my-avatar {
   animation: avatarEnter 0.32s cubic-bezier(0.16, 1, 0.3, 1) both;
   transition: transform 0.25s ease, box-shadow 0.25s ease;
+  border: 6rpx solid rgba(255, 255, 255, 0.95);
+  box-shadow: 0 14rpx 30rpx rgba(22, 119, 255, 0.12);
 }
 
 .my-avatar-wiggle {
@@ -379,31 +445,56 @@ const getLiveRoom = async () => {
 }
 
 .my-entry {
+  padding: 18rpx 24rpx;
+  border-radius: 22rpx;
+  background: transparent;
+  box-shadow: none;
   transition: transform 0.25s ease-out;
 }
 
 .my-entry-hover:active {
-  transform: translateY(-8rpx) scale(0.98);
+  transform: translateY(-4rpx) scale(0.985);
+}
+
+.my-entry-icon {
+  color: #3c7dff !important;
 }
 
 .my-entry-hover:active .my-entry-icon {
-  color: #ff6b81 !important;
+  color: #1d62f0 !important;
 }
 
 .my-feature-item {
+  padding: 22rpx 0 18rpx;
+  border-radius: 24rpx;
+  background: transparent;
+  box-shadow: none;
   transition: transform 0.25s ease-out;
 }
 
 .my-feature-hover:active {
-  transform: translateY(-8rpx) scale(0.98);
+  transform: translateY(-4rpx) scale(0.985);
 }
 
 .my-feature-hover:active .gui-grid-text {
   color: #333 !important;
 }
 
+.my-feature-icon {
+  color: #5a8dff !important;
+}
+
 .my-feature-vip.my-feature-hover:active .my-feature-icon {
   color: #f6d365 !important;
+}
+
+.my-feature-panel,
+.my-content-panel {
+  margin-left: 0;
+  margin-right: 0;
+  border-radius: 0;
+  box-shadow: none;
+  background: transparent;
 }
 
 .my-nav-underline {
@@ -419,48 +510,119 @@ const getLiveRoom = async () => {
 }
 
 .my-empty {
-  padding: 80rpx 40rpx;
+  padding: 40rpx 40rpx 70rpx;
   display: flex;
   flex-direction: column;
   align-items: center;
 }
-.my-empty-img {
-  width: 180rpx;
-  height: 180rpx;
-  opacity: 0.9;
+
+.my-empty-badge {
+  margin-bottom: 24rpx;
+  padding: 10rpx 22rpx;
+  border-radius: 999rpx;
+  font-size: 22rpx;
+  font-weight: 600;
+  color: #4d7cc8;
+  background: rgba(255, 255, 255, 0.9);
+  box-shadow: 0 8rpx 18rpx rgba(31, 41, 55, 0.05);
+  border: 1rpx solid rgba(161, 196, 253, 0.35);
 }
+
+.my-empty-icon-wrap {
+  position: relative;
+  width: 176rpx;
+  height: 176rpx;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #f8f9fa 0%, #ffffff 100%);
+  box-shadow: 0 20rpx 40rpx rgba(0, 0, 0, 0.04), inset 0 4rpx 10rpx rgba(255, 255, 255, 0.9);
+  margin-bottom: 28rpx;
+  animation: emptyFloat 3.5s ease-in-out infinite;
+}
+
+.my-empty-icon {
+  z-index: 2;
+}
+
+.my-empty-icon-subscribe {
+  color: #4a8cff !important;
+}
+
+.my-empty-icon-collect {
+  color: #ffb31a !important;
+}
+
+.my-empty-icon-history {
+  color: #7a8ca5 !important;
+}
+
+.my-empty-glow {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 140rpx;
+  height: 140rpx;
+  background: #1677ff;
+  filter: blur(35rpx);
+  opacity: 0.15;
+  z-index: 1;
+  border-radius: 50%;
+}
+
 .my-empty-title {
-  margin-top: 20rpx;
   font-size: 32rpx;
   font-weight: 700;
-  color: #333;
+  color: #1a1a1a;
+  letter-spacing: 2rpx;
+  text-align: center;
 }
+
 .my-empty-desc {
-  margin-top: 12rpx;
-  font-size: 26rpx;
-  color: #888;
-  animation: emptyFloat 2.2s ease-in-out infinite;
+  margin-top: 14rpx;
+  font-size: 24rpx;
+  color: #9ca3af;
+  line-height: 1.75;
+  text-align: center;
+  max-width: 520rpx;
 }
+
 .my-empty-btn {
-  margin-top: 28rpx;
-  padding: 18rpx 44rpx;
-  border-radius: 40rpx;
-  background: rgba(255, 107, 129, 0.12);
-  border: 1px solid rgba(255, 107, 129, 0.25);
+  margin-top: 34rpx;
+  padding: 18rpx 56rpx;
+  border-radius: 50rpx;
+  background: linear-gradient(135deg, #1677ff 0%, #4096ff 100%);
+  box-shadow: 0 8rpx 24rpx rgba(22, 119, 255, 0.25);
+  transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
 }
+
 .my-empty-btn-text {
-  color: #ff6b81;
-  font-weight: 700;
+  color: #ffffff;
+  font-weight: bold;
+  font-size: 30rpx;
+  letter-spacing: 2rpx;
 }
+
+.my-empty-btn-arrow {
+  color: #ffffff;
+  font-size: 26rpx;
+  margin-left: 8rpx;
+}
+
 .my-empty-btn-hover:active {
-  transform: scale(0.96);
+  transform: scale(0.95);
+  box-shadow: 0 4rpx 12rpx rgba(22, 119, 255, 0.15);
 }
 
 .gui-creation-live {
-    height: 80rpx;
-    bottom: -20rpx;
-    left: 50rpx;
-    border-radius: 20rpx;
-    width: 650rpx;
+    height: auto;
+    margin-top: 20rpx;
+    padding: 12rpx 0 4rpx;
+    border-radius: 0;
+    width: auto;
+    box-shadow: none;
+    background: transparent;
 }
 </style>

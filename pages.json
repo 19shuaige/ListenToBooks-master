@@ -14,6 +14,13 @@
 			}
 		},
 		{
+			"path": "pages/recommend/recommend",
+			"style": {
+				"navigationBarTitleText": "推荐",
+				"navigationStyle": "custom"
+			}
+		},
+		{
 			"path": "pages/livePush/livePush",
 			"style": {
 				"navigationBarTitleText": "直播推流"

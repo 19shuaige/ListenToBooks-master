@@ -3,13 +3,14 @@
     <!-- 页面主体 -->
     <template v-slot:gBody>
       <view class="gui-padding gui-padding-x gui-bg-white">
-        <uni-forms label-width="100" ref="formDataRef" :rules="formDataRule" v-model="formData">
+        <uni-forms label-width="100" ref="formDataRef" :rules="formDataRule" :model="formData">
           <!--          上传声音-->
           <uni-forms-item label="上传声音" required name="mediaUrl" validate-trigger="bind">
             <cl-upload
               class="gui-flex gui-space-between"
               :class="[mediaFileList.length ?'audio-upload-success': '']"
-              v-model="mediaFileList"
+              :modelValue="mediaFileList"
+              @update:modelValue="syncMediaFileList"
               fileType="video"
               :imageFormData="{
                     count:1,
@@ -31,7 +32,8 @@
           <uni-forms-item label="声音封面" name="coverUrl">
             <cl-upload
               class="gui-flex gui-space-between"
-              v-model="coverUrlList"
+              :modelValue="coverUrlList"
+              @update:modelValue="syncCoverUrlList"
               fileType="image"
               :imageFormData="{
                     count:1,
@@ -148,6 +150,9 @@ const formDataRule = {
 }
 // 上传图片列表
 const coverUrlList = reactive<string[]>([])
+const syncCoverUrlList = (files: string[] = []) => {
+  coverUrlList.splice(0, coverUrlList.length, ...files)
+}
 // 监视图片列表
 watch(coverUrlList, (val: string[]) => {
   console.log('coverUrlList', val)
@@ -156,6 +161,9 @@ watch(coverUrlList, (val: string[]) => {
 
 // 上传声音对象信息列表
 const mediaFileList = reactive<string[]>([])
+const syncMediaFileList = (files: string[] = []) => {
+  mediaFileList.splice(0, mediaFileList.length, ...files)
+}
 // 监视声音列表
 watch(mediaFileList, (val: string[]) => {
   formData.mediaUrl = val[0]

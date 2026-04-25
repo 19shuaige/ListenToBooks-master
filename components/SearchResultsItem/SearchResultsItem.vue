@@ -1,13 +1,15 @@
 <template>
-<uni-card padding="5rpx" @click="handleGoToDetails">
-  <view class="gui-margin-top">
+<uni-card padding="5rpx" :border="false" margin="0">
+  <view class="gui-margin-top rank-card-touch-area" @tap="handleGoToDetails">
     <view class="gui-card-body gui-flex gui-rows gui-nowrap">
       <view v-if="rankIndex" class="rank-badge-inner" :class="badgeClass(rankIndex)">{{ rankIndex }}</view>
       <text class="gui-absolute-lt gui-bg-red gui-p-l-5 gui-p-r-5 gui-text-small gui-color-white breath-light" style="transform: scale(0.8)">{{ getNameByValue(PAY_TYPE,data.payType) }}</text>
-      <image
-        mode="aspectFill"
-        :src="data.coverUrl"
-        class="gui-card-img"></image>
+      <view class="cover-wrapper">
+        <image
+          mode="aspectFit"
+          :src="data.coverUrl"
+          class="gui-card-img"></image>
+      </view>
       <view class="gui-card-desc">
         <view class="gui-flex gui-rows gui-nowrap gui-align-items-center">
 <!--          <view-->
@@ -21,23 +23,24 @@
             color="#ff6e40"
             class="gui-m-r-5"
             size="25"></uni-icons>
-          <view class="gui-card-name gui-primary-text gui-ellipsis">
-            <rich-text :nodes="replaceTitle(data.albumTitle)"></rich-text>
+          <view class="gui-card-name gui-primary-text">
+            <rich-text v-if="showRichTitle" :nodes="replaceTitle(data.albumTitle)"></rich-text>
+            <text v-else class="gui-card-title-text">{{ data.albumTitle }}</text>
           </view>
         </view>
         <!-- 副标题-->
-        <view class="gui-flex gui-rows gui-nowrap gui-align-items-center gui-m-t-5">
+        <view class="gui-flex gui-rows gui-nowrap gui-align-items-center gui-m-t-5 gui-card-intro-row">
           <text
-            class="gui-primary-text gui-ellipsis gui-text-small gui-color-gray">
+            class="gui-primary-text gui-text-small gui-color-gray gui-card-intro">
             {{data.albumIntro }}
           </text>
         </view>
-        <view class="gui-flex gui-rows gui-nowrap gui-align-items-center gui-m-t-10">
-          <view class="gui-m-r-20">
+        <view class="gui-flex gui-rows gui-nowrap gui-align-items-center gui-m-t-10 gui-card-meta">
+          <view class="gui-m-r-20 gui-card-meta-item">
             <uni-icons custom-prefix="iconfont" type="shengyin_o" class="gui-m-r-10"></uni-icons>
             <text>{{ data.includeTrackCount}}集</text>
           </view>
-          <view class="gui-m-r-20">
+          <view class="gui-m-r-20 gui-card-meta-item">
             <uni-icons custom-prefix="iconfont" type="erji" class="gui-m-r-10"></uni-icons>
             <text>{{ data.playStatNum}}</text>
           </view>
@@ -71,6 +74,8 @@ const badgeClass = (idx:number) => {
 	return 'rank-badge-normal'
 }
 
+const showRichTitle = /<font/i.test(props.data.albumTitle || '')
+
 /* 响应式数据 */
 // 分类导航
 
@@ -96,6 +101,12 @@ const replaceTitle = (title: string) => {
 }
 .cover-wrapper {
   position: relative;
+  width: 120rpx;
+  height: 120rpx;
+  border-radius: 20rpx;
+  overflow: hidden;
+  flex-shrink: 0;
+  background: #f5f7fb;
 }
 
 @keyframes breathBadge {
@@ -136,21 +147,66 @@ const replaceTitle = (title: string) => {
 
 /* 卡片视图 */
 .gui-card-body{
-  padding-bottom:10rpx;
+  position: relative;
+  align-items: center;
+  padding: 6rpx 4rpx 10rpx;
+  min-width: 0;
 }
 .gui-card-img{
-  width:120rpx;
-  height:120rpx;
-  border-radius:20rpx;
+  width:100%;
+  height:100%;
+  display: block;
 }
 .gui-card-desc{
-  width:400rpx;
-  margin-left:25rpx;
-  flex:1;
+  flex: 1;
+  min-width: 0;
+  margin-left: 20rpx;
+  padding-right: 8rpx;
 }
 .gui-card-name{
-  font-size:28rpx;
-  line-height:40rpx;
-  margin-right:20rpx;
+  flex: 1;
+  min-width: 0;
+  margin-right: 8rpx;
+  font-size: 26rpx;
+  line-height: 1.5;
+  font-weight: 600;
+  color: #1f2937;
+}
+.gui-card-title-text {
+  display: -webkit-box;
+  overflow: hidden;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+  word-break: break-all;
+}
+.gui-card-name :deep(div),
+.gui-card-name :deep(span),
+.gui-card-name :deep(font) {
+  display: inline;
+  font-size: inherit;
+  line-height: inherit;
+  word-break: break-all;
+}
+.gui-card-intro-row {
+  min-width: 0;
+}
+.gui-card-intro {
+  display: -webkit-box;
+  overflow: hidden;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+  line-height: 1.5;
+  word-break: break-all;
+}
+.gui-card-meta {
+  flex-wrap: wrap;
+  row-gap: 8rpx;
+}
+.gui-card-meta-item {
+  display: flex;
+  align-items: center;
+  white-space: nowrap;
+  color: #6b7280;
+  font-size: 22rpx;
 }
 </style>

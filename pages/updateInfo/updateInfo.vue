@@ -3,7 +3,7 @@
     <!-- 页面主体 -->
     <template v-slot:gBody>
       <view class="gui-padding gui-padding-x gui-bg-white">
-        <uni-forms label-width="100" ref="formDataRef" :rules="formDataRule" v-model="formData">
+        <uni-forms label-width="100" ref="formDataRef" :rules="formDataRule" :model="formData">
           <!--          专辑名称-->
           <uni-forms-item label="昵称" required name="nickname" validate-trigger="bind">
             <uni-easyinput type="text" v-model="formData.nickname"
@@ -13,7 +13,8 @@
           <uni-forms-item label="头像" required name="avatarUrl">
             <cl-upload
               class="gui-flex gui-space-between"
-              v-model="avatarUrlList"
+              :modelValue="avatarUrlList"
+              @update:modelValue="syncAvatarUrlList"
               fileType="image"
               :imageFormData="{
                 count:1,
@@ -77,6 +78,10 @@ const formDataRef = ref<InstanceType<typeof UniForms>>()
 
 // 上传图片列表
 const avatarUrlList = reactive<string[]>([userStore.user.avatarUrl])
+
+const syncAvatarUrlList = (files: string[] = []) => {
+  avatarUrlList.splice(0, avatarUrlList.length, ...files)
+}
 
 /**
  * @description: 图片上传成功

@@ -63,16 +63,18 @@
           </scroll-view>
           <scroll-view
           scroll-y
-          scroll-with-animation
+          :enhanced="true"
+          :show-scrollbar="false"
           class="gui-right-box"
           @scroll="handleBodyScroll"
           >
             <view v-if="rankList">
               <view
                 v-for="(item, idx) in rankList"
-                :key="item.id"
-                class="rank-item-wrap animate-fade-up"
-                :style="{ animationDelay: `${idx * 0.1}s` }"
+                :key="`${rankRenderSeed}-${item.id}`"
+                class="rank-item-wrap"
+                :class="{ 'rank-item-enter': idx < 5 }"
+                :style="{ animationDelay: `${Math.min(idx, 4) * 0.05}s` }"
               >
                 <SearchResultsItem :data="item" :rankIndex="idx + 1" />
               </view>
@@ -106,6 +108,7 @@ const category1NavIndex = ref(0);
 const category1Id = ref()
 // 排行榜数据
 const rankList = ref([])
+const rankRenderSeed = ref(0)
 // 分类导航数据
 const navItems = ref<CategoryTreePropsInterface[]>([]);
 
@@ -175,6 +178,7 @@ const getCategoryList = async () => {
 const getRankList = async () => {
   const res: any = await albumsService.getRankingList(category1Id.value, dimension.value)
   rankList.value = res.data
+  rankRenderSeed.value += 1
 }
  
 // 一级分类导航切换
@@ -257,17 +261,20 @@ onMounted(() => {
 }
 
 .gui-tab-item {
-  height: 100rpx;
+  height: 92rpx;
   background: transparent;
   box-sizing: border-box;
   display: flex;
   align-items: center;
   justify-content: flex-start;
-  padding: 0 18rpx;
+  margin: 10rpx 10rpx 0;
+  padding: 0 18rpx 0 22rpx;
+  border-radius: 20rpx;
   font-size: 26rpx;
-  color: #444;
-  font-weight: 400;
+  color: #5f6b7a;
+  font-weight: 500;
   line-height: 1;
+  transition: background-color 0.18s ease, color 0.18s ease, transform 0.18s ease, box-shadow 0.18s ease;
 }
 
 .rank-dimension-text {
@@ -279,37 +286,27 @@ onMounted(() => {
 
 .gui-tab-item-active {
   position: relative;
-  color: #000;
+  color: #1f2937;
   font-weight: 600;
-  background: rgba(255,255,255,0.9);
-  border-radius: 20rpx;
-  margin: 10rpx;
-  box-shadow: 0 10rpx 18rpx rgba(0,0,0,0.06);
-  border: 1px solid rgba(255, 107, 129, 0.18);
+  background: linear-gradient(180deg, rgba(255,255,255,0.96) 0%, rgba(243,248,255,0.98) 100%);
+  box-shadow: 0 10rpx 22rpx rgba(31, 41, 55, 0.06);
+  border: 1rpx solid rgba(22, 119, 255, 0.1);
 }
 
 .gui-tab-item-active::before {
   content: "";
   position: absolute;
-  left: -1px;
-  top: 22rpx;
-  height: 56rpx;
-  width: 8rpx;
+  left: 12rpx;
+  top: 50%;
+  transform: translateY(-50%);
+  height: 42rpx;
+  width: 6rpx;
   border-radius: 20rpx;
-  background: linear-gradient(180deg, #ff6b81 0%, #ff4757 100%);
+  background: linear-gradient(180deg, #66a9ff 0%, #1677ff 100%);
 }
 
 .gui-tab-item-active::after {
-  content: '';
-  position: absolute;
-  right: 16rpx;
-  top: 50%;
-  transform: translateY(-50%);
-  width: 10rpx;
-  height: 10rpx;
-  border-radius: 50%;
-  background: rgba(255, 107, 129, 0.9);
-  box-shadow: 0 0 0 8rpx rgba(255, 107, 129, 0.12);
+  display: none;
 }
 
 .gui-tab-view {
@@ -326,18 +323,23 @@ onMounted(() => {
 
 .rank-item-wrap {
   position: relative;
-  margin-bottom: 20rpx;
-  transition: transform 0.25s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+  margin-bottom: 16rpx;
   border-radius: 24rpx;
 }
-.rank-item-wrap:hover {
-  transform: translateY(-4rpx);
-  box-shadow: 0 12rpx 24rpx rgba(0,0,0,0.06);
+@keyframes rankItemEnter {
+  from {
+    opacity: 0;
+    transform: translateY(14rpx);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
-.rank-item-wrap:active {
-  transform: scale(0.95);
-  box-shadow: 0 4rpx 10rpx rgba(0,0,0,0.04);
-  transition: transform 0.1s ease-out;
+.rank-item-enter {
+  opacity: 0;
+  animation: rankItemEnter 0.22s ease-out forwards;
+  border-radius: 24rpx;
 }
 
 

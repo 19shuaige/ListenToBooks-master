@@ -60,9 +60,9 @@ const goToCategoryPage = () => {
  display: flex;
  flex-wrap: wrap;
  justify-content: flex-start;
- padding: 16rpx 20rpx; /* 大幅缩减上下内边距 */
+ padding: 3rpx 6rpx;
  margin: 0 30rpx;
- gap: 16rpx; /* 调整分类项行间距，使模块更紧凑 */
+ gap: 3rpx;
 }
 
 @keyframes popUp {
@@ -75,10 +75,10 @@ const goToCategoryPage = () => {
 }
 
 .grid-item-box {
- width: calc((100% - 32rpx) / 3); /* 每行 3 个，减去 2 个 16rpx 的 gap */
+ width: calc((100% - 12rpx) / 3);
  box-sizing: border-box;
- border-radius: 12rpx; /* 轻微减小圆角以匹配紧凑高度 */
- padding: 14rpx 0; /* 压缩单项高度 */
+ border-radius: 12rpx;
+ padding: 3rpx 0;
  display: flex;
  justify-content: center;
  align-items: center;

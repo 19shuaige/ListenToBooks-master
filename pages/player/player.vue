@@ -7,7 +7,9 @@
 		<view class="gui-relative player-content" style="z-index: 1;">
 			<view class="gui-p-t-40 gui-flex gui-row">
 				<view class="gui-flex gui-flex1 gui-row gui-justify-content-start gui-p-l-20 gui-align-items-center">
-					<view class="gui-icons gui-color-white  gui-m-r-40" @click="handleJump">&#xe603;</view>
+					<view class="player-back-btn gui-m-r-30" @click="handleJump">
+						<text class="gui-icons gui-color-white player-back-icon">&#xe603;</text>
+					</view>
 					<gui-switch-navigation
 						:activeLineClass="['gui-nav-scale', 'gui-bg-white']"
 						:titleClass="['gui-color-white']"
@@ -335,7 +337,20 @@ const handleSliderMoveEnd = () => {
  * @returns {*}
  */
 const handleJump = () => {
-	uni.navigateBack()
+	const pageStack = getCurrentPages()
+	if (pageStack.length > 1) {
+		uni.navigateBack({
+			fail: () => {
+				uni.redirectTo({
+					url: '/pages/index/index'
+				})
+			}
+		})
+		return
+	}
+	uni.redirectTo({
+		url: '/pages/index/index'
+	})
 }
 /**
  * @description 切换音频事件
@@ -654,6 +669,23 @@ onMounted(() => {
 	height: 100%;
 	display: flex;
 	flex-direction: column;
+}
+.player-back-btn {
+	width: 72rpx;
+	height: 72rpx;
+	border-radius: 50%;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	background: rgba(255, 255, 255, 0.14);
+	backdrop-filter: blur(16px);
+	-webkit-backdrop-filter: blur(16px);
+	border: 1rpx solid rgba(255, 255, 255, 0.18);
+	box-shadow: 0 8rpx 20rpx rgba(0, 0, 0, 0.12);
+}
+.player-back-icon {
+	font-size: 34rpx;
+	line-height: 1;
 }
 .cd-container {
 	width: 500rpx;

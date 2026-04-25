@@ -60,15 +60,32 @@ class Service {
               })
               reject(res.data)
             }
+          } else {
+            const message = res?.data?.message || (res.statusCode === 403 ? '暂无访问权限' : '请求失败')
+            if (!opts.silentError) {
+              uni.showToast({
+                title: message,
+                icon: 'none',
+                duration: 1800,
+              })
+            }
+            reject({
+              ...res.data,
+              statusCode: res.statusCode,
+              message,
+            })
           }
         },
-        fail: () => {
+        fail: (error: any) => {
           uni.hideLoading()
-          uni.showToast({
-            title: 'net error!',
-            icon: 'none',
-            duration: 2000,
-          })
+          if (!opts.silentError) {
+            uni.showToast({
+              title: 'net error!',
+              icon: 'none',
+              duration: 2000,
+            })
+          }
+          reject(error)
         },
       })
     })

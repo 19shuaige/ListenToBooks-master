@@ -3,7 +3,7 @@
     <!-- 页面主体 -->
     <template v-slot:gBody>
       <view class="gui-padding gui-padding-x gui-bg-white">
-        <uni-forms label-width="100" ref="formDataRef" :rules="formDataRule" v-model="formData">
+        <uni-forms label-width="100" ref="formDataRef" :rules="formDataRule" :model="formData">
           <!--          专辑名称-->
           <uni-forms-item label="专辑名称" required name="albumTitle" validate-trigger="bind">
             <uni-easyinput type="text" v-model="formData.albumTitle"
@@ -13,7 +13,8 @@
           <uni-forms-item label="专辑封面" required name="coverUrl">
             <cl-upload
               class="gui-flex gui-space-between"
-              v-model="coverUrlList"
+              :modelValue="coverUrlList"
+              @update:modelValue="syncCoverUrlList"
               fileType="image"
               :imageFormData="{
                     count:1,
@@ -89,7 +90,7 @@
             <uni-forms
               ref="payTypeFormDataRef"
               :rules="payTypeFormDataRule"
-              v-model="formData"
+              :model="formData"
               label-width="100">
               <!--           价格类型 -->
               <uni-forms-item label="价格类型" required name="priceType">
@@ -246,6 +247,9 @@ const payTypeFormDataRule = {
 }
 // 上传图片列表
 const coverUrlList = reactive<string[]>([])
+const syncCoverUrlList = (files: string[] = []) => {
+  coverUrlList.splice(0, coverUrlList.length, ...files)
+}
 // 监视图片列表
 watch(coverUrlList, (val: string[]) => {
   console.log('coverUrlList', val)

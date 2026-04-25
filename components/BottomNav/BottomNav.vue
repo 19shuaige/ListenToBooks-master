@@ -7,10 +7,13 @@
     <text :class="[currentIndex == 0 ? 'gui-primary-color' : 'nav-icon-gray', 'gui-icons', 'gui-footer-icon-buttons-text', 'gui-block']">首页</text>
    </view>
    <view class="gui-footer-icon-buttons nav-item-anim" style="animation-delay: 0.1s" @tap="navChange(1)">
-    <text :class="[currentIndex == 1 ? 'gui-primary-color' : 'nav-icon-gray', currentIndex == 1 ? 'nav-bounce' : '', 'gui-icons', 'gui-footer-icon-buttons-icon', 'gui-block', 'iconfont']">
-     &#xe7d5;
-    </text>
-    <text :class="[currentIndex == 1 ? 'gui-primary-color' : 'nav-icon-gray', 'gui-icons', 'gui-footer-icon-buttons-text', 'gui-block']">直播</text>
+   <uni-icons
+     type="paperplane"
+     :color="currentIndex == 1 ? '#1677ff' : '#9ca3af'"
+     :size="22"
+     :class="[currentIndex == 1 ? 'nav-bounce' : '', 'gui-footer-icon-buttons-icon', 'gui-block']">
+   </uni-icons>
+    <text :class="[currentIndex == 1 ? 'gui-primary-color' : 'nav-icon-gray', 'gui-icons', 'gui-footer-icon-buttons-text', 'gui-block']">推荐</text>
    </view>
    <view class="gui-footer-icon-buttons"></view>
    <view class="gui-footer-icon-buttons nav-item-anim" style="animation-delay: 0.15s" @tap="navChange(3)">
@@ -24,22 +27,31 @@
     <text :class="[currentIndex == 4 ? 'gui-primary-color' : 'nav-icon-gray', 'gui-icons', 'gui-footer-icon-buttons-text', 'gui-block']">我的</text>
    </view>
   </gui-flex>
-   <view class="gui-footer-buttons-ab center-btn nav-item-anim-center" style="animation-delay: 0.25s" @tap="navChange(2)" hover-class="center-btn-hover">
-   <text
-     :class="[
-							playerStore.playing ? 'playing' : '',
-							currentIndex == 2 ? 'nav-bounce' : '',
-							'center-icon',
-							'gui-footer',
-							'gui-icons',
-							'gui-footer-buttons-ab-icon',
-							'gui-block'
-						]"
-   >
-    &#xe648;
-   </text>
-   <text :class="[currentIndex == 2 ? 'gui-primary-color' : 'nav-icon-gray', 'gui-icons', 'gui-footer-icon-buttons-text', 'gui-block']">听专辑</text>
-  </view>
+   <view
+     class="gui-footer-buttons-ab center-btn nav-item-anim-center"
+     :class="{ 'center-btn-active': currentIndex == 2 }"
+     style="animation-delay: 0.25s"
+     @tap="navChange(2)"
+     hover-class="center-btn-hover">
+    <view class="center-orbit"></view>
+    <view class="center-icon-shell">
+     <text
+       :class="[
+								playerStore.playing ? 'playing' : '',
+								currentIndex == 2 ? 'nav-bounce' : '',
+								'center-icon',
+								'gui-icons',
+								'gui-footer-buttons-ab-icon',
+								'gui-block'
+							]"
+     >
+      &#xe648;
+     </text>
+    </view>
+    <view class="center-label-shell">
+     <text :class="[currentIndex == 2 ? 'gui-primary-color' : 'nav-icon-gray', 'center-label-text']">听专辑</text>
+    </view>
+   </view>
  </view>
 </template>
 
@@ -50,10 +62,9 @@ import { getCurrentPageInfo } from "../../utils/utils"
 import { usePlayerStore } from "../../stores/player"
 
 const playerStore = usePlayerStore()
-// 引入路由
-const pages = getCurrentPageInfo()
 /* 响应式数据 */
 const currentIndex = ref(0);
+const isNavigating = ref(false)
 const navListInfo = ref([
  {
   index: 0,
@@ -61,7 +72,7 @@ const navListInfo = ref([
  },
  {
   index: 1,
-  path: "/pages/live/live"
+  path: "/pages/recommend/recommend"
  },
  {
   index: 2,
@@ -79,22 +90,45 @@ const navListInfo = ref([
 // 分类导航
 
 /* 方法 */
+const syncCurrentIndex = () => {
+ const currentPage = getCurrentPageInfo()
+ currentIndex.value = navListInfo.value.find((item) => item.path == currentPage.route)?.index || 0
+}
+
 // 切换导航
 const navChange = (index: number) => {
+ if (isNavigating.value) {
+  return
+ }
+
+ const targetPath = navListInfo.value[index].path
+ const currentPage = getCurrentPageInfo()
+ if (currentPage.route === targetPath) {
+  syncCurrentIndex()
+  return
+ }
+
+ isNavigating.value = true
  currentIndex.value = index;
- uni.navigateTo({
-    url: navListInfo.value[index].path
-  });
+ uni.redirectTo({
+  url: targetPath,
+  success: () => {
+   syncCurrentIndex()
+  },
+  complete: () => {
+   setTimeout(() => {
+    isNavigating.value = false
+   }, 250)
+  }
+ })
 };
 /* 生命周期 */
 // 挂载时显示正确活动的导航
 onMounted(() => {
- console.log('navListInfo.value.find((item) => item.path == pages.route)?.index || 0',navListInfo.value.find((item) => item.path == pages.route)?.index || 0)
- currentIndex.value = navListInfo.value.find((item) => item.path == pages.route)?.index || 0
+ syncCurrentIndex()
 });
 onShow(() => {
- console.log('navListInfo.value.find((item) => item.path == pages.route)?.index || 0',navListInfo.value.find((item) => item.path == pages.route)?.index || 0)
- currentIndex.value = navListInfo.value.find((item) => item.path == pages.route)?.index || 0
+ syncCurrentIndex()
 })
 </script>
 
@@ -148,21 +182,70 @@ onShow(() => {
 }
 .center-btn {
   position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: flex-start;
+}
+.center-orbit {
+  position: absolute;
+  top: 8rpx;
+  width: 128rpx;
+  height: 128rpx;
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(64, 150, 255, 0.2) 0%, rgba(64, 150, 255, 0) 72%);
+  pointer-events: none;
+}
+.center-icon-shell {
+  position: relative;
+  z-index: 2;
+  width: 128rpx;
+  height: 128rpx;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.96) 0%, rgba(243, 248, 255, 0.98) 100%);
+  box-shadow: 0 12rpx 30rpx rgba(54, 96, 170, 0.12), inset 0 2rpx 0 rgba(255, 255, 255, 0.9);
+  border: 2rpx solid rgba(255, 255, 255, 0.95);
 }
 .center-icon {
   border-radius: 50%;
-  width: 112rpx !important;
-  height: 112rpx !important;
-  line-height: 112rpx !important;
-  background: linear-gradient(135deg, #4096ff 0%, #1677ff 100%) !important;
+  width: 104rpx !important;
+  height: 104rpx !important;
+  line-height: 104rpx !important;
+  background: linear-gradient(135deg, #6aa9ff 0%, #1677ff 55%, #4f7cff 100%) !important;
   color: #ffffff !important;
   font-weight: bold;
-  border: 4rpx solid #ffffff;
-  animation: breatheGlow 2.5s ease-in-out infinite;
-  transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+  border: 6rpx solid rgba(255, 255, 255, 0.92);
+  box-shadow: 0 10rpx 26rpx rgba(22, 119, 255, 0.28);
+  animation: breatheGlow 2.8s ease-in-out infinite;
+  transition: transform 0.28s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.28s ease;
 }
 .center-btn-hover:active .center-icon {
-  transform: scale(1.1) rotate(15deg);
+  transform: scale(1.06);
+}
+.center-label-shell {
+  position: relative;
+  z-index: 2;
+  margin-top: 8rpx;
+  padding: 6rpx 18rpx;
+  border-radius: 999rpx;
+  background: rgba(255, 255, 255, 0.9);
+  box-shadow: 0 8rpx 20rpx rgba(31, 41, 55, 0.08);
+  border: 1rpx solid rgba(255, 255, 255, 0.95);
+}
+.center-label-text {
+  display: block;
+  font-size: 22rpx;
+  line-height: 1.2;
+  font-weight: 600;
+}
+.center-btn-active .center-icon-shell {
+  box-shadow: 0 16rpx 34rpx rgba(54, 96, 170, 0.16), inset 0 2rpx 0 rgba(255, 255, 255, 0.95);
+}
+.center-btn-active .center-label-shell {
+  background: rgba(255, 255, 255, 0.96);
 }
 
 @keyframes ripple {
@@ -173,7 +256,7 @@ onShow(() => {
   content: '';
   position: absolute;
   left: 50%;
-  top: 56rpx;
+  top: 72rpx;
   width: 20rpx;
   height: 20rpx;
   border-radius: 50%;
@@ -194,4 +277,3 @@ onShow(() => {
   animation: rotation 6.5s linear infinite;
 }
 </style>
-

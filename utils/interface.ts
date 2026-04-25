@@ -4,6 +4,7 @@ export interface RequestOptions {
   data?: object
   url?: string
   loading?: boolean
+  silentError?: boolean
 }
 
 export interface UserInfo {
