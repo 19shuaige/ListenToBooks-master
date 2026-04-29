@@ -158,16 +158,16 @@ const getComment = async (pageNo: number, pageSize: number) => {
     trackId: props.trackId
   }
   try { // 获取评论列表
-    const res = await commentService.getCommentList(params)
-    res.data.records.forEach((item) => {
-      item.replyRelevantInformation = {
-        replyPlaceholder: "请输入回复内容",
-        replyCommentId: "",
-        replyContent: ""
-      }
-    })
-    zPagingRef.value.complete(res.data.records)
-    console.log(res)
+    // const res = await commentService.getCommentList(params)
+    // res.data.records.forEach((item) => {
+    //   item.replyRelevantInformation = {
+    //     replyPlaceholder: "请输入回复内容",
+    //     replyCommentId: "",
+    //     replyContent: ""
+    //   }
+    // })
+    // zPagingRef.value.complete(res.data.records)
+    // console.log(res)
   } catch (error) {
     console.log(error)
     zPagingRef.value.complete(false)
