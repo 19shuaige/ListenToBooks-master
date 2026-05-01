@@ -28,35 +28,34 @@
 
         <view class="waterfall-layout">
           <view
-            v-for="(row, rowIndex) in pairedRows"
-            :key="`row-${rowIndex}-${row.items[0]?.id || rowIndex}`"
-            class="waterfall-row"
-            :class="row.directionClass"
-            :style="row.pullUp > 0 ? { marginTop: `-${row.pullUp}rpx` } : null">
-            <view v-for="(item, colIndex) in row.items" :key="item.id" class="waterfall-cell">
-              <view
-                class="recommend-note animate-note-in"
-                :style="{ animationDelay: `${((rowIndex * 2 + colIndex) % 10) * 0.02}s` }">
-                <view class="recommend-note-cover" :style="{ height: `${item.coverHeight}rpx` }">
-                  <image class="recommend-note-image" :src="item.coverUrl" mode="aspectFill"></image>
-                  <view class="recommend-note-tag">{{ item.reason }}</view>
+            v-for="(column, columnIndex) in waterfallColumns"
+            :key="`column-${columnIndex}`"
+            class="waterfall-column">
+            <view
+              v-for="(item, itemIndex) in column"
+              :key="item.id"
+              class="recommend-note animate-note-in"
+              :style="{ animationDelay: `${((columnIndex + itemIndex * 2) % 10) * 0.02}s` }"
+              @click="handleToDetail(item.id)">
+              <view class="recommend-note-cover" :style="{ height: `${item.coverHeight}rpx` }">
+                <image class="recommend-note-image" :src="item.coverUrl" mode="aspectFill"></image>
+                <view class="recommend-note-tag">{{ item.reason }}</view>
+              </view>
+              <view class="recommend-note-body">
+                <text class="recommend-note-title">{{ item.title }}</text>
+                <text class="recommend-note-desc">{{ item.desc }}</text>
+                <view class="recommend-note-author">
+                  <view class="author-dot"></view>
+                  <text class="recommend-note-author-text">{{ item.author }}</text>
                 </view>
-                <view class="recommend-note-body">
-                  <text class="recommend-note-title">{{ item.title }}</text>
-                  <text class="recommend-note-desc">{{ item.desc }}</text>
-                  <view class="recommend-note-author">
-                    <view class="author-dot"></view>
-                    <text class="recommend-note-author-text">{{ item.author }}</text>
+                <view class="recommend-note-actions">
+                  <view class="note-action note-action-secondary" hover-class="note-action-hover" @click.stop="handleHate(item.id)">
+                    <text class="note-action-text">不感兴趣</text>
                   </view>
-                  <view class="recommend-note-actions">
-                    <view class="note-action note-action-secondary" hover-class="note-action-hover" @click="handleHate(item.id)">
-                      <text class="note-action-text">不感兴趣</text>
-                    </view>
-                    <view class="note-action note-action-primary" hover-class="note-action-hover" @click="handleCollect(item.id)">
-                      <text class="note-action-text" :class="{ 'note-action-text-active': item.collected }">
-                        {{ item.collected ? '已收藏' : '收藏' }}
-                      </text>
-                    </view>
+                  <view class="note-action note-action-primary" hover-class="note-action-hover" @click.stop="handleCollect(item.id)">
+                    <text class="note-action-text" :class="{ 'note-action-text-active': item.collected }">
+                      {{ item.collected ? '已收藏' : '收藏' }}
+                    </text>
                   </view>
                 </view>
               </view>
@@ -77,12 +76,11 @@
 <script setup lang="ts">
 import { computed, ref } from 'vue'
 import { onLoad, onReachBottom } from '@dcloudio/uni-app'
-import { courseService } from '../../api'
-import { CategoryListInterface } from '../../api/albums/interfaces'
-import { ChannelInterface, GoodsInterface } from '../../api/category/interfaces'
-import { recursionTree } from '../../utils/utils'
+import { search } from '../../api'
+import { albumsService } from '../../api/albums/albums'
+import { RecommendItemInterface } from '../../api/search/interfaces'
 
-type RecommendItem = GoodsInterface & {
+type RecommendItem = RecommendItemInterface & {
   author: string
   desc: string
   reason: string
@@ -91,157 +89,89 @@ type RecommendItem = GoodsInterface & {
 type RenderRecommendItem = RecommendItem & {
   coverHeight: number
 }
-type RecommendRow = {
-  items: RenderRecommendItem[]
-  directionClass: 'waterfall-row-right-down' | 'waterfall-row-left-down'
-  pullUp: number
-}
 
 const PAGE_SIZE = 20
-const ROW_STAGGER_OFFSET = 22
-const ROW_VISUAL_GAP = 14
+const WATERFALL_COLUMN_COUNT = 2
 const coverHeightPresets = [360, 430, 390, 470, 340, 450, 380, 420]
 const recommendList = ref<RecommendItem[]>([])
-const allCategoryList = ref<CategoryListInterface[]>([])
 const fetchedAlbumIds = new Set<number>()
-const bufferedList = ref<RecommendItem[]>([])
-const categoryFetchCursor = ref(0)
+const currentPageNo = ref(1)
+const total = ref(0)
 const loading = ref(false)
 const finished = ref(false)
 
 const recommendationReasonPool = ['今日热门', '首页精选', '近期高热度', '频道好书', '值得一听', '大家都在看']
 
-const postHateFeedback = async (albumId: number) => {
-  console.log('postHateFeedback', albumId)
+const resetRecommendState = () => {
+  recommendList.value = []
+  fetchedAlbumIds.clear()
+  currentPageNo.value = 1
+  total.value = 0
+  finished.value = false
 }
 
-const postCollect = async (albumId: number) => {
-  console.log('postCollect', albumId)
+const reloadRecommendList = async () => {
+  resetRecommendState()
+  await fillRecommendBatch()
 }
 
-const normalizeAlbumToRecommendItem = (album: GoodsInterface, sourceIndex: number): RecommendItem => {
+const normalizeAlbumToRecommendItem = (album: RecommendItemInterface, sourceIndex: number): RecommendItem => {
   return {
     ...album,
     author: album.announcerName || '暂无作者信息',
     desc: album.albumIntro || '这本专辑暂时还没有简介',
-    reason: recommendationReasonPool[sourceIndex % recommendationReasonPool.length],
-    collected: false
+    reason: album.recommendReason || recommendationReasonPool[sourceIndex % recommendationReasonPool.length],
+    collected: !!album.subscribed
   }
-}
-
-const getAllCategoryList = async () => {
-  const res = await courseService.getAllCategory()
-  recursionTree(res.data, 'name', 'categoryName', 'categoryChild')
-  recursionTree(res.data, 'id', 'categoryId', 'categoryChild')
-  recursionTree(res.data, 'children', 'categoryChild')
-  allCategoryList.value = res.data
-}
-
-const appendBufferedPage = () => {
-  if (!bufferedList.value.length) {
-    return
-  }
-  let appendCount = Math.min(bufferedList.value.length, PAGE_SIZE)
-  if (appendCount % 2 !== 0) {
-    appendCount -= 1
-  }
-  if (appendCount <= 0) {
-    return
-  }
-  const nextPage = bufferedList.value.splice(0, appendCount)
-  recommendList.value.push(...nextPage)
-}
-
-const collectAlbumsFromChannel = (channelList: ChannelInterface[]) => {
-  const collectedItems: RecommendItem[] = []
-  channelList.forEach((channel, channelIndex) => {
-    channel.list.forEach((album) => {
-      if (!fetchedAlbumIds.has(album.id)) {
-        fetchedAlbumIds.add(album.id)
-        collectedItems.push(normalizeAlbumToRecommendItem(album, channelIndex))
-      }
-    })
-  })
-  return collectedItems
 }
 
 const fillRecommendBatch = async () => {
-  // 如果缓冲池已经有足够数据，直接呈现，实现“秒开”
-  if (bufferedList.value.length >= PAGE_SIZE) {
-    appendBufferedPage()
-    // 静默预加载下一批数据
-    preloadNextBatch()
-    return
-  }
-
   if (loading.value || finished.value) {
     return
   }
 
   loading.value = true
   try {
-    await fetchMoreIntoBuffer()
-    appendBufferedPage()
-    // 静默预加载下一批数据
-    preloadNextBatch()
+    const requestPageNo = currentPageNo.value
+    const res = await search.getRecommendAlbums({
+      pageNo: requestPageNo,
+      pageSize: PAGE_SIZE
+    })
+    const responseData = res.data
+    const responseTotalPages = Number(responseData?.totalPages || 0)
+    const currentList = (responseData?.list || [])
+      .filter((album) => {
+        if (fetchedAlbumIds.has(album.id)) {
+          return false
+        }
+        fetchedAlbumIds.add(album.id)
+        return true
+      })
+      .map((album, index) => normalizeAlbumToRecommendItem(album, index))
+
+    if (currentList.length) {
+      recommendList.value.push(...currentList)
+    }
+
+    total.value = responseData?.total || recommendList.value.length
+    if (!currentList.length) {
+      finished.value = true
+    } else if (responseTotalPages > 0 && requestPageNo >= responseTotalPages) {
+      finished.value = true
+    } else if (recommendList.value.length >= total.value && total.value > 0) {
+      finished.value = true
+    } else {
+      currentPageNo.value += 1
+    }
   } catch (error) {
     console.log('fillRecommendBatch error', error)
+    uni.showToast({
+      title: '推荐加载失败',
+      icon: 'none'
+    })
   } finally {
     loading.value = false
   }
-}
-
-const fetchMoreIntoBuffer = async () => {
-  while (
-    (bufferedList.value.length < PAGE_SIZE || bufferedList.value.length % 2 !== 0) &&
-    categoryFetchCursor.value < allCategoryList.value.length
-  ) {
-    const currentCategory = allCategoryList.value[categoryFetchCursor.value]
-    categoryFetchCursor.value += 1
-    const res = await courseService.getCategory1IdData(currentCategory.id)
-    const channelAlbums = collectAlbumsFromChannel(res.data || [])
-    if (channelAlbums.length) {
-      bufferedList.value.push(...channelAlbums)
-    }
-  }
-  if (categoryFetchCursor.value >= allCategoryList.value.length && bufferedList.value.length % 2 !== 0) {
-    bufferedList.value.pop()
-  }
-  if (!bufferedList.value.length && categoryFetchCursor.value >= allCategoryList.value.length) {
-    finished.value = true
-  }
-}
-
-const preloadNextBatch = async () => {
-  // 如果正在加载、已加载完所有分类，或者缓冲池已经有足够数据了，则跳过
-  if (loading.value || finished.value || bufferedList.value.length >= PAGE_SIZE) {
-    return
-  }
-  loading.value = true
-  try {
-    await fetchMoreIntoBuffer()
-  } catch (error) {
-    console.log('preload error', error)
-  } finally {
-    loading.value = false
-  }
-}
-
-const ensureEvenRecommendList = async () => {
-  if (recommendList.value.length % 2 === 0) {
-    return
-  }
-  if (!bufferedList.value.length && !finished.value && !loading.value) {
-    await fetchMoreIntoBuffer()
-  }
-  if (bufferedList.value.length) {
-    const nextItem = bufferedList.value.shift()
-    if (nextItem) {
-      recommendList.value.push(nextItem)
-    }
-    return
-  }
-  recommendList.value.pop()
 }
 
 const waterfallList = computed<RenderRecommendItem[]>(() => {
@@ -251,74 +181,81 @@ const waterfallList = computed<RenderRecommendItem[]>(() => {
   }))
 })
 
-const pairedRows = computed<RecommendRow[]>(() => {
-  const rows: RecommendRow[] = []
-  let previousBridgeGap = 0
-  for (let i = 0; i < waterfallList.value.length; i += 2) {
-    const pair = waterfallList.value.slice(i, i + 2)
-    if (pair.length === 2) {
-      const leftHigher = Math.floor(i / 2) % 2 === 0
-      const left = pair[0]
-      const right = pair[1]
-      const maxH = Math.max(left.coverHeight, right.coverHeight)
-      const minH = Math.min(left.coverHeight, right.coverHeight)
-      rows.push({
-        items: [
-          { ...left, coverHeight: leftHigher ? maxH : minH },
-          { ...right, coverHeight: leftHigher ? minH : maxH }
-        ],
-        directionClass: leftHigher ? 'waterfall-row-right-down' : 'waterfall-row-left-down',
-        pullUp: rows.length === 0 ? 0 : previousBridgeGap
-      })
-      previousBridgeGap = Math.max(0, maxH - (minH + ROW_STAGGER_OFFSET) - ROW_VISUAL_GAP)
-    } else {
-      rows.push({
-        items: pair,
-        directionClass: 'waterfall-row-right-down',
-        pullUp: rows.length === 0 ? 0 : previousBridgeGap
-      })
-    }
+const waterfallColumns = computed<RenderRecommendItem[][]>(() => {
+  const columns: RenderRecommendItem[][] = Array.from({ length: WATERFALL_COLUMN_COUNT }, () => [])
+  const columnHeights = Array.from({ length: WATERFALL_COLUMN_COUNT }, () => 0)
+
+  for (const item of waterfallList.value) {
+    const targetColumnIndex =
+      columnHeights[0] <= columnHeights[1] ? 0 : 1
+
+    columns[targetColumnIndex].push(item)
+    columnHeights[targetColumnIndex] += estimateCardHeight(item)
   }
-  return rows
+
+  return columns
 })
 
-const handleCollect = (albumId: number) => {
+const estimateCardHeight = (item: RenderRecommendItem) => {
+  const titleLines = Math.min(2, Math.max(1, Math.ceil((item.title?.length || 0) / 10)))
+  const descLines = Math.min(2, Math.max(1, Math.ceil((item.desc?.length || 0) / 16)))
+  const titleHeight = titleLines * 44
+  const descHeight = descLines * 36
+  const metaHeight = 140
+  return item.coverHeight + titleHeight + descHeight + metaHeight
+}
+
+const handleToDetail = (albumId: number) => {
+  if (!albumId) {
+    return
+  }
+  uni.navigateTo({
+    url: `/pages/detail/detail?id=${albumId}`
+  })
+}
+
+const handleCollect = async (albumId: number) => {
   const item = recommendList.value.find((recommendItem) => recommendItem.id === albumId)
   if (!item) {
     return
   }
-  item.collected = !item.collected
-  uni.showToast({
-    title: item.collected ? '已加入收藏' : '已取消收藏',
-    icon: 'none'
-  })
-  // 模拟触发算法权重重新计算的 API 调用
-  postCollect(item.id)
+  try {
+    const res = await albumsService.subscribeAlbum(item.id)
+    item.collected = !!res.data
+    uni.showToast({
+      title: item.collected ? '收藏成功' : '已取消收藏',
+      icon: 'none'
+    })
+  } catch (error) {
+    console.log('handleCollect error', error)
+  }
 }
 
-const handleHate = (albumId: number) => {
-  const targetIndex = recommendList.value.findIndex((item) => item.id === albumId)
-  if (targetIndex === -1) {
+const handleHate = async (albumId: number) => {
+  const targetItem = recommendList.value.find((item) => item.id === albumId)
+  if (!targetItem) {
     return
   }
-
-  const item = recommendList.value[targetIndex]
-  uni.showToast({
-    title: '将减少此类推荐',
-    icon: 'none'
-  })
-  // 模拟反馈接口调用
-  postHateFeedback(item.id)
-  
-  // 模拟从列表中移除
-  setTimeout(async () => {
-    recommendList.value.splice(targetIndex, 1)
-    await ensureEvenRecommendList()
-  }, 300)
+  try {
+    const res = await search.dislikeRecommendAlbum(targetItem.id)
+    if (!res.data) {
+      uni.showToast({
+        title: '操作未生效，请先登录',
+        icon: 'none'
+      })
+      return
+    }
+    recommendList.value = recommendList.value.filter((item) => item.id !== targetItem.id)
+    uni.showToast({
+      title: '已减少此类推荐',
+      icon: 'none'
+    })
+  } catch (error) {
+    console.log('handleHate error', error)
+  }
 }
 
 onLoad(async () => {
-  await getAllCategoryList()
   await fillRecommendBatch()
 })
 
@@ -466,25 +403,14 @@ onReachBottom(async () => {
   position: relative;
   z-index: 1;
   margin-top: 22rpx;
-}
-
-.waterfall-row {
   display: flex;
   align-items: flex-start;
   gap: 18rpx;
 }
 
-.waterfall-cell {
+.waterfall-column {
   flex: 1;
   min-width: 0;
-}
-
-.waterfall-row-right-down .waterfall-cell:nth-child(2) {
-  margin-top: 22rpx;
-}
-
-.waterfall-row-left-down .waterfall-cell:nth-child(1) {
-  margin-top: 22rpx;
 }
 
 @keyframes noteIn {
@@ -504,7 +430,7 @@ onReachBottom(async () => {
 }
 
 .recommend-note {
-  margin-bottom: 0;
+  margin-bottom: 18rpx;
   overflow: hidden;
   border-radius: 28rpx;
   background: rgba(255, 255, 255, 0.92);

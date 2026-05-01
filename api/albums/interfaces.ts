@@ -197,6 +197,7 @@ export interface TrackInterface {
   isShowPaidMark: boolean;
   isChecked?: boolean;
   isPlaying?: boolean;
+  isCollected?: boolean;
 }
 // 专辑声音列表查询参数
 export interface QueryTrackInterface {

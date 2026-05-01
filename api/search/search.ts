@@ -1,5 +1,11 @@
 import Service from '../../utils/request'
-import { SearchItemInterface, SearchPageResponseInterface, SearchParamsInterface } from "./interfaces"
+import {
+  RecommendItemInterface,
+  RecommendQueryInterface,
+  SearchItemInterface,
+  SearchPageResponseInterface,
+  SearchParamsInterface
+} from "./interfaces"
 
 
 class CateGory extends Service {
@@ -27,8 +33,22 @@ class CateGory extends Service {
     })
   }
 
+  getRecommendAlbums(params: RecommendQueryInterface) {
+    return this.post<SearchPageResponseInterface<RecommendItemInterface[]>>({
+      url: '/api/search/albumInfo/recommend',
+      data: params,
+      silentError: true
+    })
+  }
+
+  dislikeRecommendAlbum(albumId: number) {
+    return this.get<boolean>({
+      url: `/api/search/albumInfo/recommend/dislike/${albumId}`
+    })
+  }
 
 
 }
+
 
 export const search = new CateGory()

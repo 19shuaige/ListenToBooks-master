@@ -25,6 +25,34 @@ export interface SearchItemInterface {
   buyStatNum: number;
   commentStatNum: number;
 }
+
+export interface RecommendQueryInterface {
+  pageNo?: number;
+  pageSize?: number;
+}
+
+export interface RecommendItemInterface {
+  id: number;
+  albumTitle: string;
+  albumIntro: string;
+  announcerName: string;
+  coverUrl: string;
+  includeTrackCount: number;
+  isFinished: string;
+  payType: string;
+  createTime: string;
+  category1Id: number;
+  category2Id: number;
+  category3Id: number;
+  playStatNum: number;
+  subscribeStatNum: number;
+  buyStatNum: number;
+  commentStatNum: number;
+  hotScore: number;
+  recommendReason: string;
+  subscribed: boolean;
+  finalScore: number;
+}
 // 分页请求响应接口
 export interface SearchPageResponseInterface<T> {
   list: T

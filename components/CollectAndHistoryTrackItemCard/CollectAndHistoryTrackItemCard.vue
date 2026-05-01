@@ -93,8 +93,10 @@ const props = defineProps({
 /* 方法 */
 const handleCancel = async (albumId: number | string) => {
  try {
-  const res = await props.handleCancel(albumId)
-  // const res = await albumsService.isCollectTrack(albumId)
+  const success = await props.handleCancel(albumId)
+  if (!success) {
+   return
+  }
   // 通知父组件删除这个数据
   props.deleteItemHandler(albumId)
  } catch (error) {

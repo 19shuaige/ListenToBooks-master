@@ -24,8 +24,15 @@
 							:src="albumDetailInfo.albumInfo.coverUrl"
 						></image>
 					</view>
-					<view class="gui-flex gui-column gui-flex1 gui-m-l-30" style="width: 388rpx">
+					<view class="gui-flex gui-column gui-flex1 gui-m-l-30 album-header-content" style="width: 388rpx">
 						<text class="gui-color-white album-title">{{ albumDetailInfo.albumInfo.albumTitle }}</text>
+						<view class="album-sub-meta">
+							<text class="album-sub-meta-item">{{ albumDetailInfo.announcer.nickname }}</text>
+							<text class="album-sub-meta-dot"></text>
+							<text class="album-sub-meta-item">{{ albumDetailInfo.albumInfo.includeTrackCount || 0 }} 集</text>
+							<text class="album-sub-meta-dot"></text>
+							<text class="album-sub-meta-item">{{ albumDetailInfo.albumInfo.isFinished === 1 ? '已完结' : '连载中' }}</text>
+						</view>
 						<view class="gui-m-t-20 gui-flex gui-row gui-wrap">
 							<gui-tags
 								:text="albumDetailInfo.baseCategoryView[`category${n}Name`]"
@@ -39,11 +46,14 @@
 				</view>
 
 				<view class="gui-flex gui-row gui-space-between gui-color-white gui-text-center gui-m-t-40 stat-container animate-fade-up" style="animation-delay: 0.1s;">
-					<view class="gui-flex gui-column stat-item">
-						<text class="gui-text-brown-light icon-wrapper">
-							<text class="iconfont" style="font-size: 32rpx;">&#xe651;</text>
-							<text class="gui-text-small gui-m-l-5 gui-m-r-5" style="font-weight: bold;">{{albumDetailInfo.baseCategoryView.category1Name}}</text>
-							<text class="iconfont" style="font-size: 32rpx;">&#xe650;</text>
+					<view class="gui-flex gui-column stat-item stat-item-type">
+						<view class="stat-kind-pill">
+							<text class="iconfont stat-kind-bracket">&#xe651;</text>
+							<text class="stat-kind-text">{{albumDetailInfo.baseCategoryView.category1Name}}</text>
+							<text class="iconfont stat-kind-bracket">&#xe650;</text>
+						</view>
+						<text class="stat-kind-subtitle gui-ellipsis">
+							{{ albumDetailInfo.baseCategoryView.category2Name }} / {{ albumDetailInfo.baseCategoryView.category3Name }}
 						</text>
 					</view>
 					<view class="gui-flex gui-column stat-item">
@@ -69,7 +79,10 @@
 					</view>
 				</view>
 
-				<view class="gui-m-t-30 animate-fade-up" style="animation-delay: 0.1s;"><text class="gui-text-brown">{{albumDetailInfo.albumInfo.albumIntro}}</text></view>
+				<view class="gui-m-t-30 animate-fade-up album-brief-card" style="animation-delay: 0.1s;">
+					<text class="album-brief-label">内容亮点</text>
+					<text class="gui-text-brown album-brief-text">{{albumDetailInfo.albumInfo.albumIntro}}</text>
+				</view>
 
 				<view class="gui-m-t-20 gui-border-box glass-effect-dark gui-p-20 soft-card animate-fade-up" style="animation-delay: 0.2s;" @click="">
 					<view class="gui-flex gui-column gui-flex1 gui-color-white"><text style="font-weight: 600; font-size: 32rpx;">主播介绍</text></view>
@@ -109,63 +122,76 @@
 		<template v-slot:gFooter>
 			<Resizable
 				ref="resizableRef"
-				:min-height="150"
-				:max-height="500"
-				:initial-height="200">
+				:min-height="156"
+				:max-height="560"
+				:initial-height="156"
+				@height-change="handleTrackPanelHeightChange">
 				<template #top>
-					<view class="gui-text-center resizable-top gui-bg-black">
-						<text class="iconfont gui-color-white gui-h3">&#xeb2e;</text>
+					<view class="track-panel-top">
+						<view class="track-panel-grabber-wrap">
+							<text class="iconfont track-panel-grabber">&#xeb2e;</text>
+						</view>
+						<view class="track-panel-header">
+							<view class="track-panel-copy">
+								<text class="track-panel-title">声音列表</text>
+								<text class="track-panel-subtitle">{{ albumDetailInfo.albumInfo.includeTrackCount || albumTrackList.length || 0 }} 集 · {{ isTrackPanelExpanded ? '下拉可收起，点击声音即可播放' : '点击展开查看更多声音' }}</text>
+							</view>
+							<view class="track-panel-toggle" @click.stop="toggleTrackPanel">
+								<text class="track-panel-toggle-text">{{ isTrackPanelExpanded ? '收起' : '展开' }}</text>
+							</view>
+						</view>
+						<view v-if="isTrackPanelExpanded" class="track-panel-extra">
+							<view class="member-banner btn-hover" @click="openAccountPopup">
+								<view class="member-banner-copy">
+									<view class="member-banner-badge">
+										<text class="iconfont member-banner-badge-icon">&#xe61f;</text>
+										<text class="member-banner-badge-text">会员特权</text>
+									</view>
+									<text class="member-banner-title">{{userStore.user.isVip ? '续费会员 优惠多多' : '开通会员 优惠多多'}}</text>
+									<text class="member-banner-desc">{{userStore.user.isVip ? '畅听权益持续生效，续费更划算' : '去广告、畅听付费内容、更多专属权益'}}</text>
+								</view>
+								<view class="member-banner-action">
+									<text class="member-banner-action-title">{{userStore.user.isVip ? '立即续费' : '立即开通'}}</text>
+								</view>
+							</view>
+							<view class="detail-action-row">
+								<view
+									type="default"
+									class="detail-action-btn detail-action-buy btn-hover"
+									@click="openBuyPopup"
+								>
+									<text class="gui-icons detail-action-icon">&#xe620;</text>
+									<view class="detail-action-copy">
+										<text class="detail-action-title">立即购买</text>
+										<text class="detail-action-desc">解锁付费内容</text>
+									</view>
+								</view>
+								<view
+									type="default"
+									class="detail-action-btn detail-action-subscribe btn-hover"
+									:class="isSubscribe ? 'detail-action-subscribed' : ''"
+									@click="handleSubscribe"
+								>
+									<text class="gui-icons detail-action-icon">{{ isSubscribe ? '&#xe600;' : '&#xe6c7;'}}</text>
+									<view class="detail-action-copy">
+										<text class="detail-action-title">{{ isSubscribe ? '已订阅' : '订阅专辑'}}</text>
+										<text class="detail-action-desc">{{ isSubscribe ? '推荐更新会优先看到' : '追更更方便' }}</text>
+									</view>
+									<text v-if="isSubscribe" class="detail-action-badge">已订阅</text>
+								</view>
+							</view>
+						</view>
 					</view>
 				</template>
 				<z-paging
 					ref="zPagingRef"
-					:paging-style="{height:(resizableRef?.boxHeight - 50 || 100)+'px'}"
+					:paging-style="{height: trackPanelContentHeight + 'px'}"
 					v-model="albumTrackList"
 					@query="getAlbumTrackList"
 					:fixed="false">
-					<template #top>
-						<view
-							class="gui-flex gui-space-between gui-align-items-center gui-padding soft-card gui-m-10"
-							style="background: linear-gradient(135deg, #fff 0%, #fff0f5 100%);"
-							>
-							<view class="gui-h4 gui-bold" style="color: #333;">{{userStore.user.isVip ? '续费会员 优惠多多' : '开通会员 优惠多多'}}</view>
-							<button type="default" class="gui-button premium-badge gui-noborder btn-hover" @click="openAccountPopup" style="height: 60rpx; line-height: 60rpx;">
-								<text class="gui-color-white gui-button-text gui-p-l-30 gui-p-r-30" style="font-weight: bold; border-radius: 30rpx;">{{userStore.user.isVip ? '立即续费' : '立即开通'}}</text>
-							</button>
-						</view>
-						<view class="gui-flex gui-space-between gui-justify-content-center gui-align-items-center gui-m-t-10">
-							<view
-								v-if="false"
-								type="default"
-								class="gui-button gui-bg-black-opacity6 gui-noborder gui-flex1 gui-m-l-20 gui-m-r-20 gui-flex gui-justify-content-center btn-hover"
-								style="border-radius: 40rpx; height: 80rpx;"
-								>
-								<text class="gui-icons gui-block gui-m-r-10 gui-text-brown-light">&#xe649;</text>
-								<text class="gui-icons gui-button-text gui-text-brown-light">开始播放</text>
-							</view>
-							<view
-								type="default"
-								class="gui-button gui-bg-black-opacity6 gui-noborder gui-flex1 gui-m-l-20 gui-m-r-20 gui-flex gui-justify-content-center btn-hover"
-								@click="openBuyPopup"
-								style="border-radius: 40rpx; height: 80rpx;"
-							>
-								<text class="gui-icons gui-block gui-m-r-10 gui-color-white">&#xe620;</text>
-								<text class="gui-icons gui-button-text gui-color-white">立即购买</text>
-							</view>
-							<view
-								type="default"
-								class="gui-button gui-bg-black-opacity6 gui-noborder gui-flex1 gui-m-l-20 gui-m-r-20 gui-flex gui-justify-content-center btn-hover"
-								@click="handleSubscribe"
-								style="border-radius: 40rpx; height: 80rpx;"
-							>
-								<text class="gui-icons gui-block gui-m-r-10 gui-color-white" :class="[isSubscribe ? 'gui-color-red' : '']">{{ isSubscribe ? '&#xe600;' : '&#xe6c7;'}}</text>
-								<text class="gui-icons gui-button-text gui-color-white">{{ isSubscribe ? '已订阅' : '订阅'}}</text>
-							</view>
-						</view>
-					</template>
 					<!-- 渲染列表-->
 					<view
-						class="gui-list-items animate-fade-up track-item-hover"
+						class="gui-list-items animate-fade-up track-item-hover track-item-card"
 						:style="{ animationDelay: `${index * 0.05 + 0.1}s` }"
 						:class="item.isChecked ? 'track-item-checked' : ''"
 						v-for="(item,index) in albumTrackList"
@@ -180,7 +206,11 @@
 							<view class="gui-list-title">
 								<text :class="item.isChecked ? 'track-item-title-checked' : 'gui-primary-text '" class="gui-list-title-text gui-ellipsis">{{item.trackTitle}}</text>
 							</view>
-							<view class="gui-color-gray gui-flex gui-text-small gui-flex gui-align-items-center gui-m-t-20">
+							<view v-if="item.isChecked" class="track-playing-badge">
+								<text class="gui-icons gui-m-r-5">&#xe64b;</text>
+								<text>当前选择</text>
+							</view>
+							<view class="track-item-meta gui-color-gray gui-flex gui-text-small gui-flex gui-align-items-center">
 								<text v-if="item.isChecked && item.isPlaying" class="gui-icons gui-block gui-m-r-10">&#xe64b;</text>
 								<text v-else class="gui-icons gui-block gui-m-r-10">&#xe649;</text>
 								<text class="gui-block gui-m-r-20">{{ item.playStatNum }}</text>
@@ -190,10 +220,20 @@
 								<text class="gui-block">{{ formatTime(item.mediaDuration)  }}</text>
 							</view>
 						</view>
-						<view class="gui-flex gui-column gui-color-gray gui-text-center gui-m-l-20 gui-m-r-20">
-							<text class="gui-color-gray gui-text-small gui-block gui-m-b-20">{{ item.createTime.slice(0, 10) }}</text>
-							<uni-icons v-if="item.isShowPaidMark"  custom-prefix="iconfont" type="shoufeiguanli" class="gui-m-r-10" size="15" color="#ef5350"></uni-icons>
-							<uni-icons v-else custom-prefix="iconfont" type="xiazai" class="gui-m-r-10" size="15"></uni-icons>
+						<view class="track-side-meta gui-flex gui-column gui-color-gray gui-text-center gui-m-l-20 gui-m-r-20">
+							<text class="gui-color-gray gui-text-small gui-block track-side-date">{{ item.createTime.slice(0, 10) }}</text>
+							<view class="track-side-actions">
+								<view
+									class="track-collect-btn-small"
+									:class="item.isCollected ? 'track-collect-btn-small-active' : ''"
+									@click.stop="handleTrackCollect(item)"
+								>
+									<text class="gui-icons gui-m-r-5">{{ item.isCollected ? '&#xe605;' : '&#xe6ad;' }}</text>
+									<text>{{ item.isCollected ? '已收藏' : '收藏' }}</text>
+								</view>
+								<uni-icons v-if="item.isShowPaidMark"  custom-prefix="iconfont" type="shoufeiguanli" class="gui-m-r-10" size="15" color="#ef5350"></uni-icons>
+								<uni-icons v-else custom-prefix="iconfont" type="xiazai" class="gui-m-r-10" size="15"></uni-icons>
+							</view>
 						</view>
 					</view>
 				</z-paging>
@@ -350,7 +390,7 @@
 
 </template>
 <script setup lang="ts">
-import { onMounted, ref } from 'vue';
+import { computed, ref } from 'vue';
 import { onLoad,onShow } from "@dcloudio/uni-app"
 import GuiPopup from "../../Grace6/components/gui-popup.vue"
 import ZPaging from "../../uni_modules/z-paging/components/z-paging/z-paging.vue"
@@ -392,6 +432,37 @@ const vipSettingList = ref<VipSettingInterface[]>([])
 const trackSettingList = ref<TrackSettingInterface[]>([])
 // 是否订阅
 const isSubscribe = ref<boolean>(false)
+const TRACK_PANEL_MIN_HEIGHT = 156
+const TRACK_PANEL_EXPANDED_HEIGHT = 680
+const isTrackPanelExpanded = ref(false)
+const trackPanelHeight = ref(TRACK_PANEL_MIN_HEIGHT)
+const trackPanelReservedHeight = computed(() => isTrackPanelExpanded.value ? 228 : 72)
+const trackPanelContentHeight = computed(() => Math.max(trackPanelHeight.value - trackPanelReservedHeight.value, 100))
+
+const handleTrackPanelHeightChange = (height: number) => {
+	trackPanelHeight.value = height
+	isTrackPanelExpanded.value = height > (TRACK_PANEL_MIN_HEIGHT + TRACK_PANEL_EXPANDED_HEIGHT) / 2
+}
+
+const expandTrackPanel = () => {
+	resizableRef.value?.expand?.()
+	trackPanelHeight.value = TRACK_PANEL_EXPANDED_HEIGHT
+	isTrackPanelExpanded.value = true
+}
+
+const collapseTrackPanel = () => {
+	resizableRef.value?.collapse?.()
+	trackPanelHeight.value = TRACK_PANEL_MIN_HEIGHT
+	isTrackPanelExpanded.value = false
+}
+
+const toggleTrackPanel = async () => {
+	if (isTrackPanelExpanded.value) {
+		collapseTrackPanel()
+		return
+	}
+	expandTrackPanel()
+}
 
 /* 方法 */
 // 获取专辑详情
@@ -399,6 +470,7 @@ const getAlbumDetailInfo = async () => {
 	try {
 		const res = await albumsService.getAlbumDetail(props.id)
 		albumDetailInfo.value = res.data
+		isSubscribe.value = !!res.data?.isSubscribe
 	} catch (error) {
 		console.log(error)
 	}
@@ -412,14 +484,31 @@ const getAlbumTrackList= async (page:number, limit:number) => {
 	}
 	try {
 		const res = await albumsService.getAlbumTrackList(params)
-		res.data.records.forEach((item:TrackInterface) => {
+		const records = res.data.records || []
+		records.forEach((item:TrackInterface) => {
 			item.isChecked = false
 			item.isPlaying = false
+			item.isCollected = false
 		})
-		zPagingRef.value.complete(res.data.records)
+		await syncTrackCollectStatus(records)
+		zPagingRef.value.complete(records)
 	} catch (error) {
 		console.log(error)
 	}
+}
+
+const syncTrackCollectStatus = async (trackList: TrackInterface[]) => {
+	if (!trackList.length) {
+		return
+	}
+	await Promise.all(trackList.map(async (item) => {
+		try {
+			const res = await albumsService.isCollectTrack(item.trackId)
+			item.isCollected = !!res.data
+		} catch (error) {
+			item.isCollected = false
+		}
+	}))
 }
 // 专辑声音被点击
 const handleTrackOnClick = async (index: number, item: TrackInterface) => {
@@ -455,6 +544,19 @@ const handleTrackOnClick = async (index: number, item: TrackInterface) => {
 		uni.navigateTo({
 			url: `/pages/player/player?albumId=${albumDetailInfo.value.albumInfo.id}&trackId=${item.trackId}`
 		})
+	}
+}
+
+const handleTrackCollect = async (item: TrackInterface) => {
+	try {
+		const res: any = await albumsService.collectTrack(item.trackId)
+		item.isCollected = !!res.data
+		uni.showToast({
+			title: res.data ? '收藏成功' : '取消收藏成功',
+			icon: 'none'
+		})
+	} catch (error) {
+		console.log(error)
 	}
 }
 // 获取会员收费配置列表
@@ -576,15 +678,19 @@ const goHome = () => {
 	});
 }
 
-const getIsSubscribe = () => {
-	console.log(1);
-	const res: any = albumsService.isSubscribeAlbum(props.id)
-	isSubscribe.value = res.data
+const getIsSubscribe = async () => {
+	try {
+		const res: any = await albumsService.isSubscribeAlbum(Number(props.id))
+		isSubscribe.value = !!res.data
+	} catch (error) {
+		console.log(error)
+	}
 }
-onLoad(() => {
-	getAlbumDetailInfo()
+onLoad(async () => {
+	await getAlbumDetailInfo()
 	getVipSettingList()
-	getIsSubscribe()
+	await getIsSubscribe()
+	collapseTrackPanel()
 });
 onShow(() => {
   // 处理支付成功后的回显问题
@@ -614,6 +720,29 @@ onShow(() => {
 	line-height: 1.4;
 	text-shadow: 0 4rpx 8rpx rgba(0,0,0,0.3);
 }
+.album-header-content {
+	justify-content: center;
+}
+.album-sub-meta {
+	display: flex;
+	align-items: center;
+	flex-wrap: nowrap;
+	margin-top: 16rpx;
+	overflow: hidden;
+}
+.album-sub-meta-item {
+	font-size: 22rpx;
+	color: rgba(255, 255, 255, 0.78);
+	white-space: nowrap;
+}
+.album-sub-meta-dot {
+	width: 8rpx;
+	height: 8rpx;
+	margin: 0 12rpx;
+	border-radius: 50%;
+	background: rgba(255, 255, 255, 0.35);
+	flex-shrink: 0;
+}
 .tag-rounded {
 	border-radius: 12rpx !important;
 	padding: 6rpx 16rpx !important;
@@ -629,6 +758,9 @@ onShow(() => {
 	flex: 1;
 	align-items: center;
 	position: relative;
+}
+.stat-item-type {
+	padding: 0 12rpx;
 }
 .stat-item:not(:last-child)::after {
 	content: '';
@@ -653,13 +785,251 @@ onShow(() => {
 .stat-label {
 	color: #999;
 }
-.icon-wrapper {
+.stat-kind-pill {
 	display: flex;
 	align-items: center;
 	justify-content: center;
 	background: rgba(226, 187, 146, 0.15);
-	padding: 10rpx 20rpx;
-	border-radius: 30rpx;
+	padding: 10rpx 18rpx;
+	border-radius: 999rpx;
+	white-space: nowrap;
+	max-width: 100%;
+}
+.stat-kind-bracket {
+	font-size: 30rpx;
+	color: #f3d7b4;
+	flex-shrink: 0;
+}
+.stat-kind-text {
+	margin: 0 8rpx;
+	font-size: 22rpx;
+	font-weight: 700;
+	color: #fff2dd;
+	white-space: nowrap;
+}
+.stat-kind-subtitle {
+	max-width: 100%;
+	margin-top: 12rpx;
+	font-size: 20rpx;
+	color: rgba(255, 255, 255, 0.56);
+	white-space: nowrap;
+}
+.album-brief-card {
+	padding: 22rpx 24rpx;
+	border-radius: 24rpx;
+	background: rgba(255, 255, 255, 0.08);
+	backdrop-filter: blur(10px);
+}
+.album-brief-label {
+	display: inline-flex;
+	align-items: center;
+	height: 44rpx;
+	padding: 0 18rpx;
+	border-radius: 999rpx;
+	font-size: 22rpx;
+	font-weight: 600;
+	color: #fff1dd;
+	background: rgba(226, 187, 146, 0.14);
+}
+.album-brief-text {
+	display: block;
+	margin-top: 16rpx;
+	line-height: 1.75;
+}
+.track-panel-top {
+	padding: 8rpx 16rpx 12rpx;
+	background: linear-gradient(180deg, rgba(14, 18, 32, 0.98) 0%, rgba(24, 31, 52, 0.98) 100%);
+	border-top-left-radius: 30rpx;
+	border-top-right-radius: 30rpx;
+}
+.track-panel-grabber-wrap {
+	display: flex;
+	justify-content: center;
+	align-items: center;
+	height: 18rpx;
+}
+.track-panel-grabber {
+	font-size: 30rpx;
+	color: rgba(255, 255, 255, 0.58);
+}
+.track-panel-header {
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+	margin-top: 4rpx;
+}
+.track-panel-copy {
+	flex: 1;
+	min-width: 0;
+}
+.track-panel-title {
+	display: block;
+	font-size: 26rpx;
+	font-weight: 700;
+	line-height: 1.2;
+	color: #fff;
+}
+.track-panel-subtitle {
+	display: block;
+	margin-top: 4rpx;
+	font-size: 18rpx;
+	line-height: 1.25;
+	color: rgba(255, 255, 255, 0.64);
+}
+.track-panel-toggle {
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	flex-shrink: 0;
+	min-width: 96rpx;
+	height: 44rpx;
+	padding: 0 14rpx;
+	border-radius: 999rpx;
+	background: rgba(255, 255, 255, 0.12);
+	border: 2rpx solid rgba(255, 255, 255, 0.08);
+}
+.track-panel-toggle-text {
+	font-size: 20rpx;
+	font-weight: 600;
+	color: #fff;
+}
+.track-panel-extra {
+	margin-top: 12rpx;
+}
+.member-banner {
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+	height: 88rpx;
+	padding: 0 20rpx;
+	border-radius: 24rpx;
+	background: linear-gradient(135deg, rgba(20, 27, 45, 0.96) 0%, rgba(43, 24, 54, 0.96) 100%);
+	box-shadow: 0 10rpx 24rpx rgba(17, 24, 39, 0.12);
+	border: 2rpx solid rgba(255, 255, 255, 0.06);
+}
+.member-banner-copy {
+	flex: 1;
+	min-width: 0;
+}
+.member-banner-badge {
+	display: inline-flex;
+	align-items: center;
+	height: 28rpx;
+	padding: 0 10rpx;
+	border-radius: 999rpx;
+	background: rgba(255, 255, 255, 0.1);
+}
+.member-banner-badge-icon {
+	font-size: 16rpx;
+	color: #ffd88a;
+}
+.member-banner-badge-text {
+	margin-left: 6rpx;
+	font-size: 16rpx;
+	font-weight: 600;
+	color: #ffe6b3;
+}
+.member-banner-title {
+	display: block;
+	margin-top: 6rpx;
+	font-size: 22rpx;
+	font-weight: 700;
+	line-height: 1.2;
+	color: #fff;
+	white-space: nowrap;
+	overflow: hidden;
+	text-overflow: ellipsis;
+}
+.member-banner-desc {
+	display: block;
+	margin-top: 4rpx;
+	font-size: 16rpx;
+	line-height: 1.2;
+	color: rgba(255, 255, 255, 0.68);
+	white-space: nowrap;
+	overflow: hidden;
+	text-overflow: ellipsis;
+}
+.member-banner-action {
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	flex-shrink: 0;
+	min-width: 150rpx;
+	height: 56rpx;
+	margin-left: 18rpx;
+	padding: 0 18rpx;
+	border-radius: 999rpx;
+	background: linear-gradient(135deg, #ffe29a 0%, #ffca67 100%);
+	box-shadow: 0 8rpx 20rpx rgba(255, 202, 103, 0.24);
+}
+.member-banner-action-title {
+	font-size: 20rpx;
+	font-weight: 700;
+	color: #47230d;
+}
+.detail-action-row {
+	display: flex;
+	align-items: stretch;
+	gap: 12rpx;
+	margin-top: 12rpx;
+}
+.detail-action-btn {
+	flex: 1;
+	display: flex;
+	align-items: center;
+	position: relative;
+	height: 84rpx;
+	padding: 0 18rpx;
+	border-radius: 22rpx;
+	box-sizing: border-box;
+}
+.detail-action-buy {
+	background: linear-gradient(135deg, #ffb347 0%, #ff7b54 100%);
+	box-shadow: 0 12rpx 24rpx rgba(255, 123, 84, 0.2);
+}
+.detail-action-subscribe {
+	background: rgba(19, 24, 39, 0.9);
+	border: 2rpx solid rgba(255, 255, 255, 0.08);
+}
+.detail-action-subscribed {
+	background: linear-gradient(135deg, rgba(46, 123, 255, 0.18) 0%, rgba(16, 185, 129, 0.18) 100%);
+	border-color: rgba(80, 180, 255, 0.42);
+	box-shadow: inset 0 0 0 2rpx rgba(105, 199, 255, 0.08);
+}
+.detail-action-icon {
+	font-size: 28rpx;
+	color: #fff;
+}
+.detail-action-copy {
+	display: flex;
+	flex-direction: column;
+	margin-left: 12rpx;
+	overflow: hidden;
+}
+.detail-action-title {
+	font-size: 22rpx;
+	font-weight: 700;
+	color: #fff;
+	line-height: 1.2;
+}
+.detail-action-desc {
+	margin-top: 4rpx;
+	font-size: 16rpx;
+	color: rgba(255, 255, 255, 0.72);
+	line-height: 1.2;
+}
+.detail-action-badge {
+	position: absolute;
+	right: 14rpx;
+	top: 12rpx;
+	height: 28rpx;
+	padding: 0 10rpx;
+	border-radius: 999rpx;
+	font-size: 16rpx;
+	line-height: 28rpx;
+	color: #0b5fd7;
+	background: rgba(255, 255, 255, 0.92);
 }
 .btn-hover {
 	transition: transform 0.2s cubic-bezier(0.25, 0.8, 0.25, 1), box-shadow 0.2s;
@@ -674,6 +1044,59 @@ onShow(() => {
 .track-item-hover:active {
 	background-color: rgba(0,0,0,0.02);
 	transform: scale(0.98);
+}
+.track-item-card {
+	margin: 4rpx 8rpx;
+	padding: 2rpx 6rpx;
+	border-radius: 16rpx;
+	background: linear-gradient(180deg, #ffffff 0%, #fbfcff 100%);
+	box-shadow: 0 6rpx 18rpx rgba(15, 23, 42, 0.05);
+}
+.track-item-meta {
+	margin-top: 4rpx;
+	font-size: 18rpx;
+}
+.track-playing-badge {
+	display: inline-flex;
+	align-items: center;
+	height: 24rpx;
+	margin-top: 4rpx;
+	padding: 0 8rpx;
+	border-radius: 999rpx;
+	font-size: 14rpx;
+	color: #1268ff;
+	background: rgba(18, 104, 255, 0.1);
+}
+.track-side-meta {
+	justify-content: center;
+}
+.track-side-date {
+	margin-bottom: 4rpx;
+	font-size: 16rpx;
+}
+
+.track-side-actions {
+	display: flex;
+	align-items: center;
+	justify-content: flex-end;
+	gap: 10rpx;
+}
+
+.track-collect-btn-small {
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	height: 30rpx;
+	padding: 0 8rpx;
+	border-radius: 999rpx;
+	font-size: 16rpx;
+	color: #6b7280;
+	background: rgba(148, 163, 184, 0.12);
+}
+
+.track-collect-btn-small-active {
+	color: #1677ff;
+	background: rgba(22, 119, 255, 0.12);
 }
 
 .mainScrollView {
@@ -743,19 +1166,21 @@ onShow(() => {
 	margin: 10rpx;
 }
 .resizable-top{
-	height: 80rpx;
+	height: 72rpx;
 }
 .track-item-checked{
-	background-color: #f5f5f5;
+	background: linear-gradient(135deg, rgba(238, 245, 255, 0.96) 0%, rgba(246, 250, 255, 0.98) 100%);
+	box-shadow: 0 14rpx 30rpx rgba(44, 113, 255, 0.12);
+	border: 2rpx solid rgba(49, 110, 255, 0.12);
 }
 .track-item-title-checked{
-	color: #ff0036;
+	color: #1268ff;
 }
 .track-item-sort{
 	display: flex;
 	justify-content: center;
 	align-items: center;
-	width: 60rpx;
+	width: 46rpx;
 	text-align: center;
 }
 .price-container{

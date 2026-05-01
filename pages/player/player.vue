@@ -104,7 +104,7 @@
 										{{ album?.albumTitle }}
 									</text>
 								</view>
-								<text class="gui-list-body-desc gui-text-brown gui-m-t-10 gui-ellipsis">{{ trackStaVo?.collectStatNum }}人订阅</text>
+								<text class="gui-list-body-desc gui-text-brown gui-m-t-10 gui-ellipsis">{{ trackStaVo?.collectStatNum }}人收藏</text>
 							</view>
 
 							<view class="gui-p-10 gui-border-radius gui-m-l-20 gui-bg-black-opacity2 gui-flex gui-align-items-center">
@@ -131,6 +131,7 @@
 							<view class="gui-flex gui-margin-x gui-column gui-align-items-center" @click="handleCollect">
 								<text class="gui-icons gui-h3 gui-m-b-5" v-if="isCollect">&#xe605;</text>
 								<text class="gui-icons gui-h3 gui-m-b-5" v-else>&#xe6ad;</text>
+								<text class="gui-text-small gui-m-b-5">{{ isCollect ? '已收藏' : '收藏' }}</text>
 								<text class="gui-text-small">{{ trackStaVo?.collectStatNum || 0 }}</text>
 							</view>
 							<!-- 评论 -->
@@ -200,6 +201,14 @@
 								<text class="gui-icons gui-block gui-m-r-10">&#xe607;</text>
 								<text class="gui-block">{{ formatTime(item.mediaDuration)  }}</text>
 							</view>
+						</view>
+						<view
+							class="playlist-collect-btn"
+							:class="item.isCollected ? 'playlist-collect-btn-active' : ''"
+							@click.stop="togglePlaylistCollect(item)"
+						>
+							<text class="gui-icons gui-m-r-5">{{ item.isCollected ? '&#xe605;' : '&#xe6ad;' }}</text>
+							<text>{{ item.isCollected ? '已收藏' : '收藏' }}</text>
 						</view>
 					</view>
 				</view>
@@ -534,11 +543,18 @@ const getIsCollect = async () => {
  */
 const handleCollect = async () => {
 	const res: any = await albumsService.collectTrack(audios.trackId)
+	const previousCollectCount = Number(trackStaVo.value?.collectStatNum || 0)
 	isCollect.value = res.data
+	if (trackStaVo.value) {
+		trackStaVo.value.collectStatNum = res.data
+			? previousCollectCount + 1
+			: Math.max(previousCollectCount - 1, 0)
+	}
 	uni.showToast({
 		title: !res.data ? '取消收藏成功' : '收藏成功',
 		icon: 'none'
 	})
+	updateAudioListCollectState(audios.trackId, !!res.data)
 }
 /**
  * @description: 获取专辑声音详情信息
@@ -549,6 +565,8 @@ const handleCollect = async () => {
     const res = await albumsService.getTrackInfoById(trackId)
 		trackInfo.value = res.data
 		audios.trackId = res.data?.id as number;
+		await getTrackStatistics()
+		await getIsCollect()
 		createBgAudioManager()
   } catch (error) {
     console.log(error)
@@ -581,8 +599,56 @@ const getAblumAudioList = async (page:number, limit:number) => {
 		albumId: audios.albumId
 	}
 	const res = await albumsService.getAlbumTrackList(params)
-	// audioList.value = res.data.records
-	zPagingRef.value.complete(res.data.records)
+	const records = res.data.records || []
+	records.forEach((item: TrackInterface) => {
+		item.isCollected = false
+	})
+	await syncAudioCollectStatus(records)
+	zPagingRef.value.complete(records)
+}
+
+const syncAudioCollectStatus = async (trackList: TrackInterface[]) => {
+	if (!trackList.length) {
+		return
+	}
+	await Promise.all(trackList.map(async (item) => {
+		try {
+			const res: any = await albumsService.isCollectTrack(item.trackId)
+			item.isCollected = !!res.data
+		} catch (error) {
+			item.isCollected = false
+		}
+	}))
+}
+
+const updateAudioListCollectState = (trackId: number, collected: boolean) => {
+	audioList.value.forEach((item) => {
+		if (item.trackId === trackId) {
+			item.isCollected = collected
+		}
+	})
+}
+
+const togglePlaylistCollect = async (item: TrackInterface) => {
+	try {
+		const res: any = await albumsService.collectTrack(item.trackId)
+		item.isCollected = !!res.data
+		if (item.trackId === audios.trackId) {
+			isCollect.value = !!res.data
+			const previousCollectCount = Number(trackStaVo.value?.collectStatNum || 0)
+			if (trackStaVo.value) {
+				trackStaVo.value.collectStatNum = res.data
+					? previousCollectCount + 1
+					: Math.max(previousCollectCount - 1, 0)
+			}
+		}
+		uni.showToast({
+			title: res.data ? '收藏成功' : '取消收藏成功',
+			icon: 'none'
+		})
+	} catch (error) {
+		console.log(error)
+	}
 }
 
 /**
@@ -622,10 +688,6 @@ onLoad(async (options: any) => {
 	getTrackInfoById(audios.trackId)
 	// 获取声音列表
 	getAblumAudioList(1, 10)
-	// 获取音频统计信息
-	getTrackStatistics()
-	// 是否收藏
-	getIsCollect()
 })
 
 onMounted(() => {
@@ -741,5 +803,24 @@ onMounted(() => {
 }
 .track-item-title-checked{
 	color: #ff0036;
+}
+
+.playlist-collect-btn {
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	min-width: 112rpx;
+	height: 48rpx;
+	margin-left: 18rpx;
+	padding: 0 14rpx;
+	border-radius: 999rpx;
+	font-size: 22rpx;
+	color: #6b7280;
+	background: rgba(148, 163, 184, 0.12);
+}
+
+.playlist-collect-btn-active {
+	color: #1677ff;
+	background: rgba(22, 119, 255, 0.12);
 }
 </style>

@@ -13,6 +13,10 @@
 import { ref, watch } from "vue"
 import { myThrottle } from "../../utils/utils"
 
+const emit = defineEmits<{
+ (e: "height-change", height: number): void
+}>()
+
 const props = defineProps({
  minHeight: {
   type: Number,
@@ -33,6 +37,22 @@ const boxHeight = ref(props.initialHeight)
 const minHeight = ref(props.minHeight)
 const maxHeight = ref(props.maxHeight)
 
+const clampHeight = (height: number) => {
+ if (height < minHeight.value) return minHeight.value
+ if (height > maxHeight.value) return maxHeight.value
+ return Math.round(height)
+}
+
+const setHeight = (height: number) => {
+ boxHeight.value = clampHeight(height)
+ emit("height-change", boxHeight.value)
+ return boxHeight.value
+}
+
+const expand = () => setHeight(maxHeight.value)
+const collapse = () => setHeight(minHeight.value)
+const toggle = (expanded: boolean) => expanded ? collapse() : expand()
+
 function onTouchMove(e:any) {
  console.log('onTouchMove')
  if (startY.value === 0) {
@@ -40,14 +60,7 @@ function onTouchMove(e:any) {
   return
  }
  const diff = startY.value - e.changedTouches[0].clientY
- boxHeight.value += diff
-
- // 约束高度不超出最小/最大范围
- if (boxHeight.value < minHeight.value) {
-  boxHeight.value = minHeight.value
- } else if (boxHeight.value > maxHeight.value) {
-  boxHeight.value = maxHeight.value
- }
+ setHeight(boxHeight.value + diff)
 
  startY.value = e.changedTouches[0].clientY
 }
@@ -58,12 +71,16 @@ let timeoutId:number
 watch(boxHeight, () => {
  clearTimeout(timeoutId)
  timeoutId = setTimeout(() => {
-  boxHeight.value = Math.round(boxHeight.value)
+  boxHeight.value = clampHeight(boxHeight.value)
  }, 10)
 })
 
 defineExpose({
- boxHeight
+ boxHeight,
+ setHeight,
+ expand,
+ collapse,
+ toggle
 })
 </script>
 <style scoped>

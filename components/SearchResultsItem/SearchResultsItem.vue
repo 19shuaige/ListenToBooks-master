@@ -1,9 +1,9 @@
 <template>
-<uni-card padding="5rpx" :border="false" margin="0">
-  <view class="gui-margin-top rank-card-touch-area" @tap="handleGoToDetails">
+<uni-card padding="0" :border="false" margin="0" :is-shadow="false">
+  <view class="rank-card-touch-area" :class="variantClass" @tap="handleGoToDetails">
     <view class="gui-card-body gui-flex gui-rows gui-nowrap">
       <view v-if="rankIndex" class="rank-badge-inner" :class="badgeClass(rankIndex)">{{ rankIndex }}</view>
-      <text class="gui-absolute-lt gui-bg-red gui-p-l-5 gui-p-r-5 gui-text-small gui-color-white breath-light" style="transform: scale(0.8)">{{ getNameByValue(PAY_TYPE,data.payType) }}</text>
+      <text class="pay-type-pill" :class="variant === 'search' ? 'pay-type-pill-search' : 'pay-type-pill-default'">{{ getNameByValue(PAY_TYPE,data.payType) }}</text>
       <view class="cover-wrapper">
         <image
           mode="aspectFit"
@@ -36,6 +36,10 @@
           </text>
         </view>
         <view class="gui-flex gui-rows gui-nowrap gui-align-items-center gui-m-t-10 gui-card-meta">
+          <view v-if="variant === 'search'" class="gui-card-meta-item gui-card-meta-item-author">
+            <uni-icons custom-prefix="iconfont" type="shengyin_o" class="gui-m-r-10"></uni-icons>
+            <text>{{ data.announcerName || '佚名主播' }}</text>
+          </view>
           <view class="gui-m-r-20 gui-card-meta-item">
             <uni-icons custom-prefix="iconfont" type="shengyin_o" class="gui-m-r-10"></uni-icons>
             <text>{{ data.includeTrackCount}}集</text>
@@ -64,6 +68,10 @@ const props = defineProps({
   rankIndex: {
     type: Number,
     default: 0
+  },
+  variant: {
+    type: String,
+    default: 'default'
   }
 })
 
@@ -75,6 +83,7 @@ const badgeClass = (idx:number) => {
 }
 
 const showRichTitle = /<font/i.test(props.data.albumTitle || '')
+const variantClass = props.variant === 'search' ? 'search-result-card' : 'default-result-card'
 
 /* 响应式数据 */
 // 分类导航
@@ -99,6 +108,16 @@ const replaceTitle = (title: string) => {
   width: 100%;
   box-sizing: border-box;
 }
+.default-result-card {
+  margin-top: 12rpx;
+}
+.search-result-card {
+  position: relative;
+  padding: 18rpx;
+  border-radius: 24rpx;
+  background: #ffffff;
+  box-shadow: 0 8rpx 24rpx rgba(31, 41, 55, 0.05);
+}
 .cover-wrapper {
   position: relative;
   width: 120rpx;
@@ -114,11 +133,6 @@ const replaceTitle = (title: string) => {
   50% { opacity: 1; box-shadow: 0 0 10rpx rgba(255, 107, 129, 0.4); }
   100% { opacity: 0.85; }
 }
-.breath-light {
-  animation: breathBadge 2s ease-in-out infinite;
-  z-index: 2;
-}
-
 .rank-badge-inner {
   position: absolute;
   left: -12rpx;
@@ -149,8 +163,42 @@ const replaceTitle = (title: string) => {
 .gui-card-body{
   position: relative;
   align-items: center;
-  padding: 6rpx 4rpx 10rpx;
+  padding: 8rpx 6rpx 10rpx;
   min-width: 0;
+}
+.search-result-card .gui-card-body {
+  padding: 0;
+  align-items: flex-start;
+}
+.search-result-card .cover-wrapper {
+  width: 140rpx;
+  height: 140rpx;
+  border-radius: 18rpx;
+  background: #f1f4f8;
+}
+.pay-type-pill {
+  position: absolute;
+  left: 0;
+  top: 0;
+  z-index: 2;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 84rpx;
+  height: 40rpx;
+  padding: 0 12rpx;
+  border-radius: 16rpx 0 16rpx 0;
+  font-size: 17rpx;
+  font-weight: 700;
+  color: #fff;
+}
+.pay-type-pill-default {
+  background: linear-gradient(135deg, #ff7c70 0%, #ff6e40 100%);
+  animation: breathBadge 2s ease-in-out infinite;
+}
+.pay-type-pill-search {
+  background: linear-gradient(135deg, #63a0ff 0%, #4d8dff 100%);
+  box-shadow: none;
 }
 .gui-card-img{
   width:100%;
@@ -163,6 +211,10 @@ const replaceTitle = (title: string) => {
   margin-left: 20rpx;
   padding-right: 8rpx;
 }
+.search-result-card .gui-card-desc {
+  margin-left: 18rpx;
+  padding-right: 0;
+}
 .gui-card-name{
   flex: 1;
   min-width: 0;
@@ -171,6 +223,12 @@ const replaceTitle = (title: string) => {
   line-height: 1.5;
   font-weight: 600;
   color: #1f2937;
+}
+.search-result-card .gui-card-name {
+  font-size: 31rpx;
+  line-height: 1.34;
+  font-weight: 700;
+  color: #1e293b;
 }
 .gui-card-title-text {
   display: -webkit-box;
@@ -198,9 +256,18 @@ const replaceTitle = (title: string) => {
   line-height: 1.5;
   word-break: break-all;
 }
+.search-result-card .gui-card-intro {
+  margin-top: 4rpx;
+  color: #8a94a6 !important;
+  line-height: 1.5;
+}
 .gui-card-meta {
   flex-wrap: wrap;
   row-gap: 8rpx;
+}
+.search-result-card .gui-card-meta {
+  margin-top: 16rpx !important;
+  row-gap: 10rpx;
 }
 .gui-card-meta-item {
   display: flex;
@@ -208,5 +275,16 @@ const replaceTitle = (title: string) => {
   white-space: nowrap;
   color: #6b7280;
   font-size: 22rpx;
+}
+.search-result-card .gui-card-meta-item {
+  padding: 8rpx 16rpx;
+  margin-right: 10rpx;
+  border-radius: 999rpx;
+  color: #6b7280;
+  font-size: 19rpx;
+  background: #f3f5f8;
+}
+.search-result-card .gui-card-meta-item-author {
+  max-width: 100%;
 }
 </style>

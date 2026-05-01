@@ -87,8 +87,10 @@ const props = defineProps({
 const handleCancel = async (albumId: number) => {
  console.log("取消订阅",albumId)
  try {
-  const res = await props.handleCancel(albumId)
-  console.log('res',res)
+  const success = await props.handleCancel(albumId)
+  if (!success) {
+   return
+  }
   // 通知父组件删除这个数据
   props.deleteItemHandler(albumId)
  } catch (error) {

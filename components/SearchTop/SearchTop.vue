@@ -1,30 +1,39 @@
 <template>
- <view >
-<!--  搜索框-->
+ <view class="search-top-root">
   <view class="search-container">
 <!--    搜索inut-->
-    <view class="search-input-container" v-if="isNeedSearchInput">
+    <view class="search-input-panel" v-if="isNeedSearchInput">
+      <view class="search-input-container">
       <SearchInput
         ref="searchInputRef"
         class="gui-flex1 search-input"
-        placeholder="请输入"
+        placeholder="搜索有声书 / 主播 / 关键词"
+        :customClass="['search-input-shell']"
+        height="78rpx"
+        borderRadius="999rpx"
+        iconWidth="76rpx"
+        iconFontSize="28rpx"
+        inputHeight="38rpx"
+        inputFontSize="26rpx"
         :kwd="props.queryParam.keyword"
         @handleBlur="handleBlur"
         @clear="handleClear"
         @inputting="handleInputting"
         @confirm="handleConfirm"></SearchInput>
-      <button
+      <view
         @click="handleConfirm"
-        type="default"
-        class="gui-button gui-button-mini gui-bg-blue gui-noborder"
-        style="width:100rpx;">
+        hover-class="search-confirm-btn-hover"
+        hover-stay-time="120"
+        class="search-confirm-btn">
+        <text class="gui-icons search-confirm-btn-icon">&#xe604;</text>
         <text
-          class="gui-color-white gui-button-text-mini gui-icons">搜索
+          class="search-confirm-btn-text">搜索
         </text>
-      </button>
+      </view>
+      </view>
     </view>
 <!--    搜索建议-->
-    <view class="search-suggestion-container gui-padding-x" v-if="searchSuggestionsList.length">
+    <view class="search-suggestion-container" v-if="searchSuggestionsList.length">
       <scroll-view
         :show-scrollbar="false"
         :scroll-y="true"
@@ -35,57 +44,68 @@
           v-for="(item,index) in searchSuggestionsList"
           @click="handleSearchSuggestItemOnClick(item)"
           :key="index">
-          <view class="search-suggest-text">
-            {{item}}
-          </view>
+          <text class="gui-icons search-suggest-icon">&#xe604;</text>
+          <view class="search-suggest-text">{{item}}</view>
+          <text class="search-suggest-action">直达</text>
         </view>
       </scroll-view>
 
     </view>
   </view>
    <!--   搜索历史-->
-   <view class="search-history-container gui-padding" v-if="!queryParam.keyword.trim() && isNeedSearchInput">
+   <view class="search-history-container" v-if="!queryParam.keyword.trim() && isNeedSearchInput">
      <view class="search-history-title gui-flex gui-rows gui-nowrap gui-align-items-center">
-       <text class="gui-primary-text gui-h6 gui-flex1 gui-bold">搜索历史</text>
-       <text @click="handleClearSearchHistory" class="gui-icons  gui-color-gray">&#xe794;</text>
+       <view class="search-history-title-copy">
+         <text class="search-history-title-text">搜索历史</text>
+         <text class="search-history-subtitle">继续上次的查找</text>
+       </view>
+       <view v-if="searchHistoryList.length" @click="handleClearSearchHistory" class="search-history-clear">
+         <text class="gui-icons search-history-clear-icon">&#xe794;</text>
+       </view>
      </view>
-     <view class="search-history-item-container gui-flex gui-rows gui-wrap">
+     <view v-if="searchHistoryList.length" class="search-history-item-container gui-flex gui-rows gui-wrap">
        <view
          v-for="(item,index) in searchHistoryList"
          :key="item+index"
          @click="handleSearchSuggestItemOnClick(item)"
-         class="search-history-item gui-color-grey1 gui-text-small">
+         class="search-history-item">
          {{ item }}
        </view>
-
+     </view>
+     <view v-else class="search-history-empty">
+       <text>还没有搜索记录，开始找一本想听的书吧</text>
      </view>
    </view>
 <!--  筛选条件-->
 <!--   此处之所以条件判断是因为源码中对最初始的菜单做了深拷贝，后续添加进去的东西未作监视-->
-   <le-dropdown
-     v-if="category1Id && menuList.length > 3 && (queryParam.keyword.trim() || category1Id)"
-     v-model:menuList="menuList"
-     :themeColor="checkedThemeColor"
-     :duration="300"
-     @onConfirm="handleConfirm"
-     :isClickMutuallyExclude="true"
-   ></le-dropdown>
-   <le-dropdown
-     v-if="category1Id && menuList.length <= 3 && (queryParam.keyword.trim() || category1Id)"
-     v-model:menuList="menuList"
-     :themeColor="checkedThemeColor"
-     :duration="300"
-     @onConfirm="handleConfirm"
-     :isClickMutuallyExclude="true"
-   ></le-dropdown>
-  <le-dropdown
-    v-if="!category1Id && menuList.length <= 3 && (queryParam.keyword.trim() || category1Id)"
-    v-model:menuList="menuList"
-    :themeColor="checkedThemeColor"
-    :isClickMutuallyExclude="true"
-    :duration="300"
-    @onConfirm="handleConfirm"
-  ></le-dropdown>
+   <view
+     v-if="queryParam.keyword.trim() || category1Id"
+     class="search-filter-shell">
+     <le-dropdown
+       v-if="category1Id && menuList.length > 3"
+       v-model:menuList="menuList"
+       :themeColor="checkedThemeColor"
+       :duration="300"
+       @onConfirm="handleConfirm"
+       :isClickMutuallyExclude="true"
+     ></le-dropdown>
+     <le-dropdown
+       v-if="category1Id && menuList.length <= 3"
+       v-model:menuList="menuList"
+       :themeColor="checkedThemeColor"
+       :duration="300"
+       @onConfirm="handleConfirm"
+       :isClickMutuallyExclude="true"
+     ></le-dropdown>
+    <le-dropdown
+      v-if="!category1Id && menuList.length <= 3"
+      v-model:menuList="menuList"
+      :themeColor="checkedThemeColor"
+      :isClickMutuallyExclude="true"
+      :duration="300"
+      @onConfirm="handleConfirm"
+    ></le-dropdown>
+   </view>
  </view>
 </template>
 <script setup lang="ts">
@@ -284,46 +304,178 @@ onMounted(() => {
 </script>
 
 <style lang="scss">
+.search-top-root {
+  padding-bottom: 8rpx;
+}
+
 .search-container{
   position: relative;
 }
-.search-input-container{
- display: flex;
- justify-content: space-between;
- align-items: center;
- width: 100%;
- padding: 20rpx 0 0 0;
- .search-input{
-  margin: 0 20rpx;
- }
+
+.search-input-panel {
+  padding: 16rpx;
+  border-radius: 24rpx;
+  background: #ffffff;
+  box-shadow: 0 6rpx 18rpx rgba(31, 41, 55, 0.04);
 }
+
+.search-input-container{
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  width: 100%;
+  .search-input{
+    min-width: 0;
+    margin-right: 12rpx;
+  }
+}
+
+.search-input-shell {
+  background: #f6f7fb !important;
+  border: 1rpx solid #eef1f5;
+}
+
+.search-confirm-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  min-width: 148rpx;
+  height: 78rpx;
+  padding: 0 26rpx;
+  gap: 8rpx;
+  border-radius: 999rpx;
+  background: linear-gradient(135deg, #5d9eff 0%, #3f86f7 100%);
+  box-shadow: 0 10rpx 24rpx rgba(63, 134, 247, 0.24);
+}
+
+.search-confirm-btn-text {
+  color: #fff;
+  font-size: 26rpx;
+  font-weight: 700;
+  letter-spacing: 1rpx;
+}
+
+.search-confirm-btn-icon {
+  font-size: 24rpx;
+  color: rgba(255, 255, 255, 0.92);
+}
+
+.search-confirm-btn-hover {
+  transform: translateY(1rpx);
+  opacity: 0.92;
+}
+
 .search-suggestion-container{
-  background-color: #fff;
   width: 100%;
   position: absolute;
+  left: 0;
+  top: calc(100% + 12rpx);
   z-index: 999;
-  padding: 20rpx 0 10rpx 0;
+  padding: 10rpx 0;
+  border-radius: 22rpx;
+  background: #ffffff;
+  box-shadow: 0 8rpx 24rpx rgba(15, 23, 42, 0.08);
   .search-suggestions-item{
-    padding: 10rpx 30rpx;
-    .search-suggest-text{
-      padding: 20rpx;
-      //background-color: rgba(0,0,0,0.1);
-      color: rgba(0,0,0,0.6);
-      font-size: 24rpx;
-    }
+    display: flex;
+    align-items: center;
+    padding: 18rpx 22rpx;
+  }
+  .search-suggest-icon {
+    font-size: 24rpx;
+    color: #94a3b8;
+  }
+  .search-suggest-text{
+    flex: 1;
+    margin-left: 14rpx;
+    color: #233046;
+    font-size: 24rpx;
+    font-weight: 500;
+  }
+  .search-suggest-action {
+    color: #9aa9bd;
+    font-size: 20rpx;
   }
 }
 .search-history-container{
-  min-height:100rpx;
+  margin-top: 18rpx;
+  padding: 20rpx;
+  border-radius: 24rpx;
+  background: #ffffff;
+  box-shadow: 0 6rpx 18rpx rgba(31, 41, 55, 0.04);
   width: 100%;
+  box-sizing: border-box;
+  .search-history-title-copy {
+    display: flex;
+    flex-direction: column;
+  }
+  .search-history-title-text {
+    font-size: 27rpx;
+    font-weight: 700;
+    color: #1f2937;
+  }
+  .search-history-subtitle {
+    margin-top: 4rpx;
+    font-size: 20rpx;
+    color: #98a2b3;
+  }
+  .search-history-clear {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 60rpx;
+    height: 60rpx;
+    border-radius: 50%;
+    background: #f3f5f8;
+  }
+  .search-history-clear-icon {
+    font-size: 28rpx;
+    color: #7d8798;
+  }
   .search-history-item-container{
-    margin: 20rpx;
+    margin-top: 18rpx;
     .search-history-item{
-      margin: 10rpx;
-      padding: 10rpx 20rpx;
-      background-color:rgba(0,0,0,0.1);
-      border-radius:40rpx;
+      margin: 0 14rpx 14rpx 0;
+      padding: 14rpx 22rpx;
+      font-size: 22rpx;
+      color: #52627c;
+      background: #f5f6f8;
+      border-radius: 999rpx;
+      border: 1rpx solid #edf0f4;
     }
   }
+}
+
+.search-history-empty {
+  margin-top: 18rpx;
+  padding: 22rpx 20rpx;
+  border-radius: 24rpx;
+  font-size: 22rpx;
+  line-height: 1.5;
+  color: #8a96aa;
+  background: rgba(241, 245, 249, 0.72);
+}
+
+.search-filter-shell {
+  margin-top: 18rpx;
+  padding: 8rpx 12rpx;
+  border-radius: 22rpx;
+  background: #ffffff;
+  box-shadow: 0 6rpx 18rpx rgba(31, 41, 55, 0.04);
+}
+
+.search-filter-shell :deep(.le-dropdown-menu) {
+  background: transparent !important;
+}
+
+.search-filter-shell :deep(.le-dropdown-menu-item) {
+  height: 84rpx !important;
+  font-size: 26rpx !important;
+  color: #5b6472 !important;
+}
+
+.search-filter-shell :deep(.le-dropdown-menu-item-active) {
+  color: #4b8dff !important;
+  font-weight: 700 !important;
 }
 </style>

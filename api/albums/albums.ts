@@ -204,7 +204,7 @@ class CateGory extends Service {
    */
   subscribeAlbum(albumId: number) {
     return this.get({
-      url: `/api/user/userInfo/subscribe/${albumId}`,
+      url: `/api/album/albumInfo/subscribe/${albumId}`,
     })
   }
   /**

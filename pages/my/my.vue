@@ -116,7 +116,7 @@
             v-if="pageData.currentPageNav === 'subscribe'"
             :data="item"
             :deleteItemHandler="deleteItem"
-            :handleCancel="(id)=>albumsService.isSubscribeAlbum(id)"
+            :handleCancel="handleCancelSubscribe"
             :popSetting="pageData[pageData.currentPageNav].popSetting"
             :jumpRoute="pageData[pageData.currentPageNav].jumpRoute"
             v-for="item in pageData[pageData.currentPageNav].list"
@@ -126,7 +126,7 @@
             v-if="pageData.currentPageNav === 'collect'"
             :data="item"
             :deleteItemHandler="deleteItem"
-            :handleCancel="(id) => albumsService.isCollectTrack(id)"
+            :handleCancel="handleCancelCollect"
             :popSetting="pageData[pageData.currentPageNav].popSetting"
             mode="collect"
             :jumpRoute="pageData[pageData.currentPageNav].jumpRoute"
@@ -136,7 +136,7 @@
             v-if="pageData.currentPageNav === 'history'"
             :data="item"
             :deleteItemHandler="deleteItem"
-            :handleCancel="(id) => albumsService.deleteHistoryTrack(id)"
+            :handleCancel="handleDeleteHistory"
             :popSetting="pageData[pageData.currentPageNav].popSetting"
             mode="history"
             :jumpRoute="pageData[pageData.currentPageNav].jumpRoute"
@@ -323,6 +323,48 @@ const getListInfo = async (page: number, limit: number) => {
 const handleEmptyAction = () => {
   handleGoToOtherPage('/pages/index/index')
 }
+
+const handleCancelSubscribe = async (albumId: number) => {
+  const res = await albumsService.subscribeAlbum(albumId)
+  if (res.data === false) {
+    uni.showToast({
+      title: '已取消订阅',
+      icon: 'none'
+    })
+    return true
+  }
+  uni.showToast({
+    title: '取消失败',
+    icon: 'none'
+  })
+  return false
+}
+
+const handleCancelCollect = async (trackId: number) => {
+  const res = await albumsService.collectTrack(trackId)
+  if (res.data === false) {
+    uni.showToast({
+      title: '已取消收藏',
+      icon: 'none'
+    })
+    return true
+  }
+  uni.showToast({
+    title: '取消失败',
+    icon: 'none'
+  })
+  return false
+}
+
+const handleDeleteHistory = async (id: number | string) => {
+  await albumsService.deleteHistoryTrack(Number(id))
+  uni.showToast({
+    title: '已删除历史',
+    icon: 'none'
+  })
+  return true
+}
+
 // 子组件被删除，触发父组件的删除列表子项事件
 const deleteItem = (id: number | string) => {
   if (pageData.currentPageNav === 'subscribe') {
