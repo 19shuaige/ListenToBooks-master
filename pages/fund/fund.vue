@@ -3,21 +3,22 @@
 		ref="zPagingRef"
 		v-model="pageData[pageData.currentPageNav].list"
 		@query="getListInfo"
+		:paging-style="{ background: '#F4F7FD' }"
 		show-refresher-update-time
 		auto-show-back-to-top>
 		<!-- 需要固定在顶部不滚动的view放在slot="top"的view中，如果需要跟着滚动，则不要设置slot="top" -->
 		<template #top>
 			<!-- 分类导航 -->
-			<view class="gui-padding-x">
+			<view class="fund-top-wrap">
 				<gui-switch-navigation
 					textAlign="center"
 					:isCenter="true"
 					activeDirection="center"
 					:size="0"
 					:margin="0"
-					padding="30rpx"
-					activeLineHeight="4rpx"
-					activeLineWidth="40rpx"
+					padding="26rpx"
+					activeLineHeight="6rpx"
+					activeLineWidth="54rpx"
 					:currentIndex="pageData.currentIndex"
 					:items="navItems"
 					@change="(index)=>navChange(index,navItems[index].id)"
@@ -26,20 +27,26 @@
 		</template>
 		<!-- 如果希望其他view跟着页面滚动，可以放在z-paging标签内 -->
 		<!--			专辑列表Item-->
-		<view class="gui-m-b-20 gui-padding-x"
+		<view class="fund-record-card"
 					v-for="(item,index) in pageData[pageData.currentPageNav].list"
 					:key="item.id">
-			<view class="gui-flex gui-row gui-space-between">
-				<view class="gui-flex gui-column gui-flex1">
-					<text class="gui-ellipsis custom-title">{{ item.title }}</text>
-					<text class="gui-text-small  gui-text-black-opacity3">{{ item.createTime }}</text>
+			<view class="fund-record-main">
+				<view class="fund-record-left">
+					<view class="fund-record-icon" :class="pageData.currentPageNav === navItems[0].id ? 'fund-record-icon-invest' : 'fund-record-icon-consume'">
+						{{ pageData.currentPageNav === navItems[0].id ? '充' : '支' }}
+					</view>
+					<view class="fund-record-content">
+						<text class="gui-ellipsis custom-title">{{ item.title }}</text>
+						<text class="fund-record-time">{{ item.createTime }}</text>
+					</view>
 				</view>
-				<view class="gui-flex gui-column">
-					<text class="gui-color-orange gui-bold">{{ pageData.currentPageNav === navItems[0].id ? `+${item.amount}` : `-${item.amount}`}}元</text>
-					<text class="gui-text-small gui-text-black-opacity3">交易完成</text>
+				<view class="fund-record-right">
+					<text class="fund-record-amount" :class="pageData.currentPageNav === navItems[0].id ? 'fund-record-amount-invest' : 'fund-record-amount-consume'">
+						{{ pageData.currentPageNav === navItems[0].id ? `+${item.amount}` : `-${item.amount}`}}元
+					</text>
+					<text class="fund-record-status">交易完成</text>
 				</view>
 			</view>
-			<view class="gui-border-b gui-m-t-20"></view>
 		</view>
 
 	</z-paging>
@@ -131,8 +138,87 @@ onMounted(() => {
 </script>
 
 <style lang="scss">
+.fund-top-wrap {
+	padding: 18rpx 24rpx 12rpx;
+	background: linear-gradient(180deg, #f4f7fd 0%, #f0f4fd 100%);
+}
+.fund-record-card {
+	margin: 0 24rpx 20rpx;
+	padding: 24rpx;
+	border-radius: 28rpx;
+	background: linear-gradient(180deg, #ffffff 0%, #fbfcff 100%);
+	box-shadow: 0 12rpx 36rpx rgba(53, 88, 168, 0.08);
+	border: 1rpx solid rgba(92, 137, 230, 0.08);
+}
+.fund-record-main {
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+	column-gap: 20rpx;
+}
+.fund-record-left {
+	display: flex;
+	align-items: center;
+	flex: 1;
+	min-width: 0;
+}
+.fund-record-icon {
+	width: 72rpx;
+	height: 72rpx;
+	border-radius: 24rpx;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	font-size: 28rpx;
+	font-weight: 700;
+	flex-shrink: 0;
+}
+.fund-record-icon-invest {
+	color: #4d7ef1;
+	background: rgba(77, 126, 241, 0.12);
+}
+.fund-record-icon-consume {
+	color: #ff6676;
+	background: rgba(255, 102, 118, 0.12);
+}
+.fund-record-content {
+	flex: 1;
+	min-width: 0;
+	margin-left: 18rpx;
+}
 .custom-title{
-	width: 400rpx;
+	display: block;
+	width: 100%;
+	font-size: 28rpx;
+	font-weight: 700;
+	color: #24304a;
+}
+.fund-record-time {
+	display: block;
+	margin-top: 10rpx;
+	font-size: 22rpx;
+	color: #96a0b4;
+}
+.fund-record-right {
+	flex-shrink: 0;
+	text-align: right;
+}
+.fund-record-amount {
+	display: block;
+	font-size: 30rpx;
+	font-weight: 700;
+}
+.fund-record-amount-invest {
+	color: #4d7ef1;
+}
+.fund-record-amount-consume {
+	color: #ff6676;
+}
+.fund-record-status {
+	display: block;
+	margin-top: 10rpx;
+	font-size: 22rpx;
+	color: #96a0b4;
 }
 
 </style>
