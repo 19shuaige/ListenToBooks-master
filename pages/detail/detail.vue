@@ -192,7 +192,7 @@
 					<!-- 渲染列表-->
 					<view
 						class="gui-list-items animate-fade-up track-item-hover track-item-card"
-						:style="{ animationDelay: `${index * 0.05 + 0.1}s` }"
+						:style="{ animationDelay: `${Math.min(index, 4) * 0.02}s`, animationDuration: '0.25s' }"
 						:class="item.isChecked ? 'track-item-checked' : ''"
 						v-for="(item,index) in albumTrackList"
 						@click="handleTrackOnClick(index,item)"

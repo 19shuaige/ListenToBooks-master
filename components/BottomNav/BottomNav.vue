@@ -65,6 +65,7 @@ const playerStore = usePlayerStore()
 /* 响应式数据 */
 const currentIndex = ref(0);
 const isNavigating = ref(false)
+let navUnlockTimer: ReturnType<typeof setTimeout> | null = null
 const navListInfo = ref([
  {
   index: 0,
@@ -115,10 +116,17 @@ const navChange = (index: number) => {
   success: () => {
    syncCurrentIndex()
   },
+  fail: () => {
+   isNavigating.value = false
+  },
   complete: () => {
-   setTimeout(() => {
+   if (navUnlockTimer) {
+    clearTimeout(navUnlockTimer)
+   }
+   navUnlockTimer = setTimeout(() => {
     isNavigating.value = false
-   }, 250)
+    navUnlockTimer = null
+   }, 120)
   }
  })
 };
@@ -128,6 +136,7 @@ onMounted(() => {
  syncCurrentIndex()
 });
 onShow(() => {
+ isNavigating.value = false
  syncCurrentIndex()
 })
 </script>
@@ -143,7 +152,8 @@ onShow(() => {
   to { transform: translateY(0); opacity: 1; }
 }
 .animate-nav-in {
-  animation: navIn 0.4s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+  opacity: 1;
+  animation: navIn 0.28s cubic-bezier(0.16, 1, 0.3, 1) both;
 }
 
 @keyframes navItemPop {
@@ -152,8 +162,8 @@ onShow(() => {
   100% { transform: translateY(0); opacity: 1; }
 }
 .nav-item-anim {
-  opacity: 0;
-  animation: navItemPop 0.4s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+  opacity: 1;
+  animation: navItemPop 0.24s cubic-bezier(0.16, 1, 0.3, 1) both;
 }
 
 @keyframes navCenterPop {
@@ -162,8 +172,8 @@ onShow(() => {
   100% { transform: translateY(0) scale(1); opacity: 1; }
 }
 .nav-item-anim-center {
-  opacity: 0;
-  animation: navCenterPop 0.5s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+  opacity: 1;
+  animation: navCenterPop 0.28s cubic-bezier(0.16, 1, 0.3, 1) both;
 }
 
 @keyframes navBounce {

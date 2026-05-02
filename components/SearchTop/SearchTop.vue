@@ -9,12 +9,12 @@
         class="gui-flex1 search-input"
         placeholder="搜索有声书 / 主播 / 关键词"
         :customClass="['search-input-shell']"
-        height="78rpx"
+        height="66rpx"
         borderRadius="999rpx"
-        iconWidth="76rpx"
-        iconFontSize="28rpx"
-        inputHeight="38rpx"
-        inputFontSize="26rpx"
+        iconWidth="64rpx"
+        iconFontSize="24rpx"
+        inputHeight="34rpx"
+        inputFontSize="24rpx"
         :kwd="props.queryParam.keyword"
         @handleBlur="handleBlur"
         @clear="handleClear"
@@ -305,7 +305,7 @@ onMounted(() => {
 
 <style lang="scss">
 .search-top-root {
-  padding-bottom: 8rpx;
+  padding-bottom: 4rpx;
 }
 
 .search-container{
@@ -313,10 +313,10 @@ onMounted(() => {
 }
 
 .search-input-panel {
-  padding: 16rpx;
-  border-radius: 24rpx;
+  padding: 12rpx;
+  border-radius: 18rpx;
   background: #ffffff;
-  box-shadow: 0 6rpx 18rpx rgba(31, 41, 55, 0.04);
+  box-shadow: 0 4rpx 14rpx rgba(31, 41, 55, 0.04);
 }
 
 .search-input-container{
@@ -326,7 +326,7 @@ onMounted(() => {
   width: 100%;
   .search-input{
     min-width: 0;
-    margin-right: 12rpx;
+    margin-right: 10rpx;
   }
 }
 
@@ -340,24 +340,24 @@ onMounted(() => {
   align-items: center;
   justify-content: center;
   flex-shrink: 0;
-  min-width: 148rpx;
-  height: 78rpx;
-  padding: 0 26rpx;
-  gap: 8rpx;
+  min-width: 124rpx;
+  height: 66rpx;
+  padding: 0 20rpx;
+  gap: 6rpx;
   border-radius: 999rpx;
   background: linear-gradient(135deg, #5d9eff 0%, #3f86f7 100%);
-  box-shadow: 0 10rpx 24rpx rgba(63, 134, 247, 0.24);
+  box-shadow: 0 8rpx 18rpx rgba(63, 134, 247, 0.2);
 }
 
 .search-confirm-btn-text {
   color: #fff;
-  font-size: 26rpx;
+  font-size: 23rpx;
   font-weight: 700;
   letter-spacing: 1rpx;
 }
 
 .search-confirm-btn-icon {
-  font-size: 24rpx;
+  font-size: 20rpx;
   color: rgba(255, 255, 255, 0.92);
 }
 
@@ -372,14 +372,14 @@ onMounted(() => {
   left: 0;
   top: calc(100% + 12rpx);
   z-index: 999;
-  padding: 10rpx 0;
-  border-radius: 22rpx;
+  padding: 8rpx 0;
+  border-radius: 18rpx;
   background: #ffffff;
   box-shadow: 0 8rpx 24rpx rgba(15, 23, 42, 0.08);
   .search-suggestions-item{
     display: flex;
     align-items: center;
-    padding: 18rpx 22rpx;
+    padding: 14rpx 18rpx;
   }
   .search-suggest-icon {
     font-size: 24rpx;
@@ -398,11 +398,11 @@ onMounted(() => {
   }
 }
 .search-history-container{
-  margin-top: 18rpx;
-  padding: 20rpx;
-  border-radius: 24rpx;
+  margin-top: 12rpx;
+  padding: 16rpx;
+  border-radius: 18rpx;
   background: #ffffff;
-  box-shadow: 0 6rpx 18rpx rgba(31, 41, 55, 0.04);
+  box-shadow: 0 4rpx 14rpx rgba(31, 41, 55, 0.04);
   width: 100%;
   box-sizing: border-box;
   .search-history-title-copy {
@@ -410,13 +410,13 @@ onMounted(() => {
     flex-direction: column;
   }
   .search-history-title-text {
-    font-size: 27rpx;
+    font-size: 24rpx;
     font-weight: 700;
     color: #1f2937;
   }
   .search-history-subtitle {
-    margin-top: 4rpx;
-    font-size: 20rpx;
+    margin-top: 2rpx;
+    font-size: 18rpx;
     color: #98a2b3;
   }
   .search-history-clear {
@@ -433,11 +433,11 @@ onMounted(() => {
     color: #7d8798;
   }
   .search-history-item-container{
-    margin-top: 18rpx;
+    margin-top: 12rpx;
     .search-history-item{
-      margin: 0 14rpx 14rpx 0;
-      padding: 14rpx 22rpx;
-      font-size: 22rpx;
+      margin: 0 10rpx 10rpx 0;
+      padding: 10rpx 18rpx;
+      font-size: 20rpx;
       color: #52627c;
       background: #f5f6f8;
       border-radius: 999rpx;
@@ -447,21 +447,21 @@ onMounted(() => {
 }
 
 .search-history-empty {
-  margin-top: 18rpx;
-  padding: 22rpx 20rpx;
-  border-radius: 24rpx;
-  font-size: 22rpx;
+  margin-top: 12rpx;
+  padding: 16rpx 18rpx;
+  border-radius: 18rpx;
+  font-size: 20rpx;
   line-height: 1.5;
   color: #8a96aa;
   background: rgba(241, 245, 249, 0.72);
 }
 
 .search-filter-shell {
-  margin-top: 18rpx;
-  padding: 8rpx 12rpx;
-  border-radius: 22rpx;
+  margin-top: 10rpx;
+  padding: 4rpx 10rpx;
+  border-radius: 18rpx;
   background: #ffffff;
-  box-shadow: 0 6rpx 18rpx rgba(31, 41, 55, 0.04);
+  box-shadow: 0 4rpx 14rpx rgba(31, 41, 55, 0.04);
 }
 
 .search-filter-shell :deep(.le-dropdown-menu) {
@@ -469,8 +469,8 @@ onMounted(() => {
 }
 
 .search-filter-shell :deep(.le-dropdown-menu-item) {
-  height: 84rpx !important;
-  font-size: 26rpx !important;
+  height: 66rpx !important;
+  font-size: 23rpx !important;
   color: #5b6472 !important;
 }
 

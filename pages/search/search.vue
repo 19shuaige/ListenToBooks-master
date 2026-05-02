@@ -24,11 +24,11 @@
             class="search-result-summary">
             <view class="search-result-summary-copy">
               <text class="search-result-summary-title">{{ pageInfo.queryParams.keyword.trim() ? '搜索结果' : props.pageTitle }}</text>
-              <text class="search-result-summary-desc">
-                {{ pageInfo.queryParams.keyword.trim() ? `“${pageInfo.queryParams.keyword.trim()}”` : '已为你整理相关有声内容' }}
-                <text v-if="pageInfo.total"> · {{ pageInfo.total }} 条</text>
-              </text>
             </view>
+            <text class="search-result-summary-desc">
+              {{ pageInfo.queryParams.keyword.trim() ? `“${pageInfo.queryParams.keyword.trim()}”` : '相关内容' }}
+              <text v-if="pageInfo.total"> · {{ pageInfo.total }} 条</text>
+            </text>
             <view v-if="pageInfo.queryParams.keyword.trim()" class="search-keyword-chip">
               <text>{{ pageInfo.queryParams.keyword.trim() }}</text>
             </view>
@@ -162,37 +162,41 @@ onMounted(() => {
 }
 
 .search-top-shell {
-  padding: 12rpx 20rpx 0;
+  padding: 8rpx 16rpx 0;
 }
 
 .search-result-summary {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  margin: 14rpx 0 12rpx;
-  padding: 18rpx 22rpx;
-  border-radius: 24rpx;
+  margin: 8rpx 0 8rpx;
+  padding: 12rpx 16rpx;
+  border-radius: 18rpx;
   background: #ffffff;
-  box-shadow: 0 6rpx 20rpx rgba(31, 41, 55, 0.04);
+  box-shadow: 0 4rpx 14rpx rgba(31, 41, 55, 0.04);
 }
 
 .search-result-summary-copy {
-  flex: 1;
-  min-width: 0;
+  flex-shrink: 0;
 }
 
 .search-result-summary-title {
   display: block;
-  font-size: 28rpx;
+  font-size: 24rpx;
   font-weight: 700;
   color: #1f2937;
 }
 
 .search-result-summary-desc {
-  display: block;
-  margin-top: 6rpx;
-  font-size: 22rpx;
-  line-height: 1.4;
+  flex: 1;
+  min-width: 0;
+  padding: 0 12rpx;
+  font-size: 19rpx;
+  line-height: 1.3;
+  text-align: right;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
   color: #7b8797;
 }
 
@@ -201,19 +205,19 @@ onMounted(() => {
   align-items: center;
   justify-content: center;
   flex-shrink: 0;
-  max-width: 220rpx;
-  min-height: 52rpx;
-  padding: 0 18rpx;
-  margin-left: 16rpx;
+  max-width: 180rpx;
+  min-height: 40rpx;
+  padding: 0 14rpx;
+  margin-left: 8rpx;
   border-radius: 999rpx;
   color: #3f7de8;
-  font-size: 21rpx;
+  font-size: 18rpx;
   font-weight: 600;
   background: #edf4ff;
 }
 
 .search-result-wrap {
-  padding: 0 20rpx 16rpx;
+  padding: 0 16rpx 10rpx;
 }
 
 .search-empty-state {

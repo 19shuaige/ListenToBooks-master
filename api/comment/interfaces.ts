@@ -20,12 +20,12 @@ export interface CommentInterface  {
   createTime: string;
   isPraise: boolean;
   replyCommentList: CommentInterface[] | null;
-  parent: CommentInterface;
+  parent: CommentInterface | null;
   replyRelevantInformation:{
     replyPlaceholder: string;
     replyCommentId: string;
     replyContent: string;
-  }
+  };
 }
 // 分页请求响应接口
 export interface PageResponseInterface<T> {

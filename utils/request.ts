@@ -53,8 +53,9 @@ class Service {
               })
               resolve(res.data)
             } else {
+              const errorMessage = res?.data?.message || '请求失败'
               uni.showToast({
-                title: res.data.message,
+                title: errorMessage,
                 icon: 'error',
                 duration: 1500,
               })

@@ -113,10 +113,10 @@ const replaceTitle = (title: string) => {
 }
 .search-result-card {
   position: relative;
-  padding: 18rpx;
-  border-radius: 24rpx;
+  padding: 12rpx;
+  border-radius: 18rpx;
   background: #ffffff;
-  box-shadow: 0 8rpx 24rpx rgba(31, 41, 55, 0.05);
+  box-shadow: 0 6rpx 18rpx rgba(31, 41, 55, 0.05);
 }
 .cover-wrapper {
   position: relative;
@@ -171,9 +171,9 @@ const replaceTitle = (title: string) => {
   align-items: flex-start;
 }
 .search-result-card .cover-wrapper {
-  width: 140rpx;
-  height: 140rpx;
-  border-radius: 18rpx;
+  width: 108rpx;
+  height: 108rpx;
+  border-radius: 14rpx;
   background: #f1f4f8;
 }
 .pay-type-pill {
@@ -184,14 +184,14 @@ const replaceTitle = (title: string) => {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  min-width: 84rpx;
-  height: 40rpx;
-  padding: 0 12rpx;
-  border-radius: 18rpx 0 16rpx 0;
-  font-size: 18rpx;
+  min-width: 72rpx;
+  height: 34rpx;
+  padding: 0 10rpx;
+  border-radius: 14rpx 0 12rpx 0;
+  font-size: 16rpx;
   font-weight: 700;
   color: #fff;
-  letter-spacing: 1rpx;
+  letter-spacing: 0.5rpx;
 }
 .pay-type-pill-default {
   background: linear-gradient(135deg, #ff6b7c 0%, #ff4d5e 100%);
@@ -209,11 +209,11 @@ const replaceTitle = (title: string) => {
 .gui-card-desc{
   flex: 1;
   min-width: 0;
-  margin-left: 20rpx;
+  margin-left: 14rpx;
   padding-right: 8rpx;
 }
 .search-result-card .gui-card-desc {
-  margin-left: 18rpx;
+  margin-left: 12rpx;
   padding-right: 0;
 }
 .gui-card-name{
@@ -226,8 +226,8 @@ const replaceTitle = (title: string) => {
   color: #1f2937;
 }
 .search-result-card .gui-card-name {
-  font-size: 31rpx;
-  line-height: 1.34;
+  font-size: 27rpx;
+  line-height: 1.28;
   font-weight: 700;
   color: #1e293b;
 }
@@ -235,7 +235,7 @@ const replaceTitle = (title: string) => {
   display: -webkit-box;
   overflow: hidden;
   -webkit-box-orient: vertical;
-  -webkit-line-clamp: 2;
+  -webkit-line-clamp: 1;
   word-break: break-all;
 }
 .gui-card-name :deep(div),
@@ -253,22 +253,23 @@ const replaceTitle = (title: string) => {
   display: -webkit-box;
   overflow: hidden;
   -webkit-box-orient: vertical;
-  -webkit-line-clamp: 2;
-  line-height: 1.5;
+  -webkit-line-clamp: 1;
+  line-height: 1.35;
   word-break: break-all;
 }
 .search-result-card .gui-card-intro {
-  margin-top: 4rpx;
+  margin-top: 2rpx;
   color: #8a94a6 !important;
-  line-height: 1.5;
+  line-height: 1.35;
+  font-size: 20rpx;
 }
 .gui-card-meta {
   flex-wrap: wrap;
   row-gap: 8rpx;
 }
 .search-result-card .gui-card-meta {
-  margin-top: 16rpx !important;
-  row-gap: 10rpx;
+  margin-top: 8rpx !important;
+  row-gap: 6rpx;
 }
 .gui-card-meta-item {
   display: flex;
@@ -278,14 +279,19 @@ const replaceTitle = (title: string) => {
   font-size: 22rpx;
 }
 .search-result-card .gui-card-meta-item {
-  padding: 8rpx 16rpx;
-  margin-right: 10rpx;
+  padding: 5rpx 12rpx;
+  margin-right: 8rpx;
   border-radius: 999rpx;
   color: #6b7280;
-  font-size: 19rpx;
+  font-size: 17rpx;
   background: #f3f5f8;
 }
 .search-result-card .gui-card-meta-item-author {
   max-width: 100%;
+}
+.search-result-card .gui-card-meta-item :deep(.uni-icons),
+.search-result-card .gui-card-meta-item .gui-m-r-10 {
+  margin-right: 6rpx !important;
+  font-size: 18rpx !important;
 }
 </style>

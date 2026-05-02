@@ -33,7 +33,7 @@ class Comment extends Service {
    * @param albumCommentScore
    * @param trackId
    */
-  addComment(albumId: number | string,trackId: string, replyCommentId: string, content: string,albumCommentScore: number = 10) {
+  addComment(albumId: number | string, trackId: number | string, replyCommentId: string, content: string, albumCommentScore: number = 10) {
     return this.post({
       url: `/api/comment/save`,
       data: {

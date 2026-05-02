@@ -73,6 +73,7 @@
 									:min="0"
 									:max="sliders.max"
 									:value="sliders.progressTime"
+									@changing="handleSliderChanging"
 									@change="sliderChange"
 									@touchstart="handleSliderMoveStart "
       						@touchend="handleSliderMoveEnd"
@@ -150,7 +151,15 @@
 						</view>
 						<view class="gui-flex gui-flex1 gui-justify-content-end"><gui-star></gui-star></view>
 					</view> -->
-						<CommentList :albumId="albumId" :trackId="audios.trackId" :style="{ height: scrollHeight  + 'px' }"></CommentList>
+						<CommentList
+							v-if="commentReady"
+							:albumId="audios.albumId"
+							:trackId="audios.trackId"
+							:style="{ height: scrollHeight  + 'px' }"></CommentList>
+						<view v-else class="player-comment-empty" :style="{ height: scrollHeight  + 'px' }">
+							<text class="player-comment-empty-title">暂无可查看的评论</text>
+							<text class="player-comment-empty-desc">先播放一条有效声音，再来看看大家都说了什么</text>
+						</view>
 <!--					<scroll-view scroll-y :style="{ height: scrollHeight  + 'px' }" class="gui-border-box  gui-p-l-30 gui-p-r-30 gui-bg-white">-->
 <!--						<CommentList :albumId="albumId"></CommentList>-->
 <!--					</scroll-view>-->
@@ -226,7 +235,7 @@ import {
 	TrackStaVoInterface,
 	TrackInterface,
 } from "../../api/albums/interfaces"
-import { ref, computed, onMounted, reactive } from 'vue';
+import { ref, computed, onMounted, onUnmounted, reactive } from 'vue';
 import { onLoad } from "@dcloudio/uni-app"
 import { formatTime } from '../../utils/utils'
 import { usePlayerStore } from "../../stores/player"
@@ -247,6 +256,7 @@ const scrollHeight = computed(() => {
 	return systemHeight.value - uni.upx2px(113) - uni.upx2px(135);
 });
 const currentIndex = ref(0);
+const commentReady = computed(() => !!audios.albumId && !!audios.trackId)
 
 // 初始化背景音频控件
 const bgAudioManager = uni.getBackgroundAudioManager();
@@ -287,6 +297,9 @@ const sliders =  reactive({
 	max: 0,
 })
 
+const pendingSeekSecond = ref(0)
+let progressReportTimer: ReturnType<typeof setInterval> | null = null
+
 const albumPopupRef = ref()
 
 const navchange = index => {
@@ -313,7 +326,13 @@ const closeAlbumPopup = () => {
 const sliderChange = (e) => {
 	// 拖动slider的值
 	const position = e.detail.value
+	sliders.isDraging = false
 	seekAudio(position)
+}
+
+const handleSliderChanging = (e) => {
+	sliders.isDraging = true
+	syncProgressState(e.detail.value)
 }
 
 /**
@@ -334,11 +353,71 @@ const handleSliderMoveEnd = () => {
 /**
  * 音频跳转
  */
+const getFallbackDuration = () => {
+	const currentTrack = audioList.value.find((item) => item.trackId === audios.trackId)
+	const durationCandidates = [
+		Number(bgAudioManager.duration),
+		Number(trackInfo.value?.mediaDuration),
+		Number(currentTrack?.mediaDuration),
+		Number(sliders.max)
+	]
+	return durationCandidates.find((item) => Number.isFinite(item) && item > 0) || 0
+}
+
+const syncDurationState = (duration = getFallbackDuration()) => {
+	const safeDuration = Math.max(Math.floor(Number(duration) || 0), 0)
+	if (!safeDuration) {
+		return
+	}
+	sliders.max = safeDuration
+	audios.duration = formatTime(safeDuration)
+	if (sliders.progressTime > safeDuration) {
+		syncProgressState(safeDuration)
+	}
+}
+
+const syncProgressState = (position: number) => {
+	const duration = getFallbackDuration()
+	const safePosition = Math.max(0, Math.floor(Number(position) || 0))
+	const clampedPosition = duration > 0 ? Math.min(safePosition, duration) : safePosition
+	sliders.progressTime = clampedPosition
+	audios.currentTime = formatTime(clampedPosition)
+}
+
+const clearProgressReportTimer = () => {
+	if (progressReportTimer) {
+		clearInterval(progressReportTimer)
+		progressReportTimer = null
+	}
+}
+
+const startProgressReportTimer = () => {
+	clearProgressReportTimer()
+	progressReportTimer = setInterval(async() => {
+		if (bgAudioManager.paused) return
+		const params = {
+			albumId: audios.albumId,
+			trackId: audios.trackId,
+			breakSecond: sliders.progressTime
+		}
+		await albumsService.updateListenProcess(params)
+	}, 10000)
+}
+
+const applyPendingSeek = () => {
+	if (pendingSeekSecond.value <= 0) {
+		return
+	}
+	const target = pendingSeekSecond.value
+	pendingSeekSecond.value = 0
+	bgAudioManager.seek(target)
+	syncProgressState(target)
+}
+
  const seekAudio = (position: number) => {
-	bgAudioManager.seek(position)
-	// 修改当前进度
-	audios.currentTime = formatTime(position)
-	sliders.progressTime = position
+	const target = Math.max(0, Math.floor(Number(position) || 0))
+	bgAudioManager.seek(target)
+	syncProgressState(target)
 }
 
 /**
@@ -430,6 +509,7 @@ const createBgAudioManager = () => {
 	// 音频测试地址
 	// innerAudioContext.src = 'https://bjetxgzv.cdn.bspapp.com/VKCEYUGU-hello-uniapp/2cc220e0-c27a-11ea-9dfb-6da8e309e0d8.mp3';
 	if (bgAudioManager) {
+		clearProgressReportTimer()
 
 		// 若原先的音频未暂停，则先暂停
 		if (!bgAudioManager.paused) {
@@ -466,57 +546,47 @@ const playAudio = () => {
  * @returns {*}
  */
 const initAudio = (ctx: any) => {
+	if (typeof ctx.offTimeUpdate === 'function') ctx.offTimeUpdate()
+	if (typeof ctx.offCanplay === 'function') ctx.offCanplay()
+	if (typeof ctx.offPlay === 'function') ctx.offPlay()
+	if (typeof ctx.offPause === 'function') ctx.offPause()
+	if (typeof ctx.offEnded === 'function') ctx.offEnded()
+	if (typeof ctx.offError === 'function') ctx.offError()
+
 	ctx.onTimeUpdate(() => {
 		// 当拖动进度条的时候不需要更新进度，使用seek方法
 		if(!sliders.isDraging) {
-			// 获取当前进度
-			const currentTime:number = ctx.currentTime
-			// 跟新音频进度和slider进度
-			if (currentTime) {
-				sliders.progressTime = ctx.currentTime
-				audios.currentTime = formatTime(currentTime);
-			}
+			syncDurationState()
+			syncProgressState(ctx.currentTime)
 		}
 	})
 	ctx.onCanplay(() => {
-
-		setTimeout(() => {
-			console.log('音频长度', bgAudioManager.duration);
-			// 音频长度,时分秒格式
-			const duration = bgAudioManager.duration
-			audios.duration = formatTime(duration);
-			// 进度条长度=音频长度
-			sliders.max = duration
-		}, 300)
+		syncDurationState()
+		setTimeout(() => syncDurationState(), 120)
+		setTimeout(() => syncDurationState(), 360)
 	})
 	ctx.onPlay(() => {
 		audios.playStatus = true
 		playerStore.changePlayStatus(true)
-		// 跳转进度
-		seekAudio(audios.breakSecond)
-		// 上报播放进度
-		setInterval(async() => {
-			// 每10秒请求一次接口
-			const params = {
-				albumId: audios.albumId,
-				trackId: audios.trackId,
-				breakSecond: sliders.progressTime
-			}
-			if (bgAudioManager.paused) return
-			await albumsService.updateListenProcess(params)
-		}, 10000); // 定时器每10秒触发一次
+		syncDurationState()
+		applyPendingSeek()
+		startProgressReportTimer()
 	})
 	ctx.onPause(() => {
 		audios.playStatus = false
 		playerStore.changePlayStatus(false)
+		clearProgressReportTimer()
 	})
 	ctx.onEnded(() => {
+		clearProgressReportTimer()
+		syncProgressState(0)
 		// 播放结束自动切换到下一首歌
 		nextAudio()
 	})
 	ctx.onError(() => {
 		audios.playStatus = false
 		playerStore.changePlayStatus(false)
+		clearProgressReportTimer()
 	})
 }
 
@@ -525,6 +595,13 @@ const initAudio = (ctx: any) => {
  * @returns {*}
  */
 const handleComment = () => {
+	if (!commentReady.value) {
+		uni.showToast({
+			title: '当前暂无可评论内容',
+			icon: 'none'
+		})
+		return
+	}
 	currentIndex.value = 1
 }
 
@@ -565,6 +642,9 @@ const handleCollect = async () => {
     const res = await albumsService.getTrackInfoById(trackId)
 		trackInfo.value = res.data
 		audios.trackId = res.data?.id as number;
+		await getBreakSecond()
+		syncProgressState(0)
+		syncDurationState(Number(res.data?.mediaDuration || 0))
 		await getTrackStatistics()
 		await getIsCollect()
 		createBgAudioManager()
@@ -666,22 +746,32 @@ const getAlbumDetail = async(id: number) => {
  */
 const getBreakSecond = async() => {
 	const res: any = await albumsService.getTrackBreakSecond(audios.trackId)
-	audios.breakSecond = res.data
+	audios.breakSecond = Number(res.data || 0)
+	pendingSeekSecond.value = audios.breakSecond
 }
 
 onLoad(async (options: any) => {
 	console.log('options', options);
-	if (JSON.stringify(options) !== "{}") {
-		audios.trackId = options.trackId
-		audios.albumId = options.albumId
+	if (JSON.stringify(options) !== "{}" && options?.trackId && options?.albumId) {
+		audios.trackId = Number(options.trackId)
+		audios.albumId = Number(options.albumId)
 	} else {
-		// 如果不是从单集点击进来的，请求接口，播放最近播放的一次历史
-		const { data } = await albumsService.getLatelyTrack()
-		audios.trackId = data.trackId
-		audios.albumId = data.albumId
+		try {
+			// 如果不是从单集点击进来的，请求接口，播放最近播放的一次历史
+			const { data } = await albumsService.getLatelyTrack()
+			audios.trackId = Number(data?.trackId || 0)
+			audios.albumId = Number(data?.albumId || 0)
+		} catch (error) {
+			console.log(error)
+		}
 	}
-	// 获取上次播放的声音
-	getBreakSecond()
+	if (!audios.trackId || !audios.albumId) {
+		uni.showToast({
+			title: '暂无最近播放记录',
+			icon: 'none'
+		})
+		return
+	}
 	// 获取专辑详情
 	getAlbumDetail(audios.albumId)
 	// 获取音频详情
@@ -694,6 +784,10 @@ onMounted(() => {
 	var systemInfo = graceJS.system();
 	systemHeight.value = systemInfo.safeArea.height;
 });
+
+onUnmounted(() => {
+	clearProgressReportTimer()
+})
 </script>
 
 <style lang="scss">
@@ -822,5 +916,27 @@ onMounted(() => {
 .playlist-collect-btn-active {
 	color: #1677ff;
 	background: rgba(22, 119, 255, 0.12);
+}
+
+.player-comment-empty {
+	display: flex;
+	flex-direction: column;
+	align-items: center;
+	justify-content: center;
+	padding: 0 40rpx;
+	text-align: center;
+	color: rgba(255, 255, 255, 0.9);
+}
+
+.player-comment-empty-title {
+	font-size: 30rpx;
+	font-weight: 700;
+}
+
+.player-comment-empty-desc {
+	margin-top: 14rpx;
+	font-size: 22rpx;
+	line-height: 1.6;
+	color: rgba(255, 255, 255, 0.72);
 }
 </style>
