@@ -95,19 +95,19 @@ import { recursionTree } from "../../utils/utils"
 import { CategoryTreeInterface, CategoryTreePropsInterface, ChannelInterface } from "../../api/category/interfaces"
 const swiperItems = ref([
 	{
-		img: '../../static/carousel/a.png',
+		img: '../../static/carousel/ChatGPT Image 2026年5月2日 11_22_20.png',
 		url: '',
 		title: '测试标题 001',
 		opentype: 'navigate'
 	},
 	{
-		img: '../../static/carousel/b.png',
+		img: '../../static/carousel/ChatGPT Image 2026年5月2日 11_06_26.png',
 		url: '',
 		title: '测试标题 002',
 		opentype: 'navigate'
 	},
 	{
-		img: '../../static/carousel/c.png',
+		img: '../../static/carousel/ChatGPT Image 2026年5月2日 11_07_41.png',
 		url: '',
 		title: '测试标题很长很长很长很长很长很长很长很长很长很长很长很长很长很长',
 		opentype: 'navigate'

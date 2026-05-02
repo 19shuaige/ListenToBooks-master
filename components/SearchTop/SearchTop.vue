@@ -478,4 +478,18 @@ onMounted(() => {
   color: #4b8dff !important;
   font-weight: 700 !important;
 }
+
+.search-filter-shell :deep(.le-dropdown-filter-content) {
+  gap: 14rpx 12rpx;
+}
+
+.search-filter-shell :deep(.le-dropdown-filter-box) {
+  width: calc((100% - 24rpx) / 3);
+  min-width: 0;
+  margin-right: 0;
+  margin-bottom: 0;
+  padding: 16rpx 8rpx;
+  box-sizing: border-box;
+  font-size: 24rpx;
+}
 </style>

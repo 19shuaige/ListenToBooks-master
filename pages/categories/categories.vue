@@ -218,38 +218,53 @@ onMounted(async () => {
 }
 
 .gui-tab-view {
-  width: 200rpx;
+  width: 214rpx;
   height: 100%;
-  background-color: #f6f6f6;
+  padding: 16rpx 12rpx;
+  box-sizing: border-box;
+  background: linear-gradient(180deg, #edf3f9 0%, #f6f8fb 100%);
 }
 
 .gui-tab-item {
-  height: 120rpx;
-  background: #f6f6f6;
+  min-height: 104rpx;
+  margin-bottom: 14rpx;
+  padding: 18rpx 16rpx 18rpx 24rpx;
+  background: transparent;
   box-sizing: border-box;
   display: flex;
   align-items: center;
-  justify-content: center;
+  justify-content: flex-start;
+  border-radius: 24rpx;
   font-size: 26rpx;
-  color: #444;
-  font-weight: 400;
-  line-height: 1;
+  color: #64748b;
+  font-weight: 500;
+  line-height: 1.35;
+  transition: transform 0.18s ease, background 0.18s ease, box-shadow 0.18s ease, color 0.18s ease;
+}
+
+.gui-tab-item:active {
+  transform: scale(0.97);
+  background: rgba(255, 255, 255, 0.72);
 }
 
 .gui-tab-item-active {
   position: relative;
-  color: #000;
-  font-weight: 600;
-  background: #fff;
+  color: #2f3b52;
+  font-weight: 700;
+  background: linear-gradient(180deg, #ffffff 0%, #f7faff 100%);
+  box-shadow: 0 10rpx 22rpx rgba(148, 163, 184, 0.14);
 }
 
 .gui-tab-item-active::before {
   content: "";
   position: absolute;
-  border-left: 4px solid red;
-  height: 32rpx;
-  left: 0;
-  top: 39rpx;
+  width: 8rpx;
+  height: 38rpx;
+  left: 10rpx;
+  top: 50%;
+  transform: translateY(-50%);
+  border-radius: 999rpx;
+  background: linear-gradient(180deg, #6aa8ff 0%, #4b8dff 100%);
 }
 
 .gui-tab-view {
@@ -261,14 +276,15 @@ onMounted(async () => {
 }
 
 .gui-page-view {
-  padding: 16rpx;
+  padding: 18rpx;
 }
 
 .gui-class-item {
-  margin-bottom: 30rpx;
-  //background-color: #fff;
-  padding: 16rpx;
-  border-radius: 8rpx;
+  margin-bottom: 26rpx;
+  padding: 20rpx 18rpx 10rpx;
+  border-radius: 24rpx;
+  background: rgba(255, 255, 255, 0.86);
+  box-shadow: 0 8rpx 24rpx rgba(31, 41, 55, 0.05);
 }
 
 .gui-class-item:last-child {
@@ -276,33 +292,51 @@ onMounted(async () => {
 }
 
 .gui-item-title {
-  font-size: 26rpx;
-  color: gray;
-  font-weight: bold;
+  padding-left: 8rpx;
+  font-size: 28rpx;
+  color: #334155;
+  font-weight: 700;
 }
 
 .gui-item-menu-name {
-  font-weight: normal;
-  font-size: 30rpx;
+  font-weight: 600;
+  font-size: 28rpx;
+  line-height: 1.4;
+  color: #2f3b52;
+  text-align: center;
 }
 
 .gui-item-container {
   display: flex;
   flex-wrap: wrap;
-  justify-content: space-between;
+  justify-content: flex-start;
+  gap: 18rpx;
+  margin-top: 22rpx;
 }
 
 .gui-thumb-box {
-  width: 240rpx;
+  width: calc((100% - 18rpx) / 2);
   display: flex;
   align-items: center;
   justify-content: center;
   flex-direction: column;
-  margin-top: 80rpx;
-  padding: 30rpx 10rpx;
-  background-color: #fff;
-  border-radius: 8rpx;
-  color: rgba(0, 0, 0, 0.65);
+  min-height: 118rpx;
+  margin-top: 0;
+  padding: 0 18rpx;
+  background: linear-gradient(180deg, #ffffff 0%, #f5f9ff 100%);
+  border: 1rpx solid #dde8f7;
+  border-radius: 26rpx;
+  color: #4b5563;
+  box-sizing: border-box;
+  box-shadow: 0 8rpx 20rpx rgba(148, 163, 184, 0.12);
+  transition: transform 0.18s ease, box-shadow 0.18s ease, border-color 0.18s ease, background 0.18s ease;
+}
+
+.gui-thumb-box:active {
+  transform: scale(0.97);
+  border-color: #bfd7ff;
+  background: linear-gradient(180deg, #ffffff 0%, #edf5ff 100%);
+  box-shadow: 0 12rpx 24rpx rgba(75, 141, 255, 0.16);
 }
 
 </style>

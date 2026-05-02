@@ -187,18 +187,19 @@ const replaceTitle = (title: string) => {
   min-width: 84rpx;
   height: 40rpx;
   padding: 0 12rpx;
-  border-radius: 16rpx 0 16rpx 0;
-  font-size: 17rpx;
+  border-radius: 18rpx 0 16rpx 0;
+  font-size: 18rpx;
   font-weight: 700;
   color: #fff;
+  letter-spacing: 1rpx;
 }
 .pay-type-pill-default {
-  background: linear-gradient(135deg, #ff7c70 0%, #ff6e40 100%);
+  background: linear-gradient(135deg, #ff6b7c 0%, #ff4d5e 100%);
   animation: breathBadge 2s ease-in-out infinite;
 }
 .pay-type-pill-search {
-  background: linear-gradient(135deg, #63a0ff 0%, #4d8dff 100%);
-  box-shadow: none;
+  background: linear-gradient(135deg, #ff6b7c 0%, #ff4d5e 100%);
+  box-shadow: 0 6rpx 14rpx rgba(255, 77, 94, 0.18);
 }
 .gui-card-img{
   width:100%;
