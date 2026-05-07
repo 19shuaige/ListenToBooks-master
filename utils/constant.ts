@@ -3,6 +3,8 @@ import { BASE_UPLOAD_URL } from "../config/confjg"
 export const TOKEN_KEY = "token"
 // 本地存储用户信息的key
 export const USER_KEY = "user"
+// 本地存储主题色的key
+export const THEME_COLOR_KEY = "themeColor"
 // 登陆成功重定向url的key
 export const REDIRECT_URL_KEY = "redirectUrl"
 // 收费类型

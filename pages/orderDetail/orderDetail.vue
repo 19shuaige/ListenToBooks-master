@@ -9,7 +9,7 @@
 
 				<view class="detail-card">
 					<view class="detail-section-title">订单内容</view>
-					<scroll-view scroll-y class="detail-goods-scroll">
+					<view class="detail-goods-scroll">
 					  <view class="detail-goods-item" v-for="item in orderInfo?.orderDetailList" :key="item.id">
 					  	<image
 					  		class="gui-album-img"
@@ -22,7 +22,7 @@
 					  	</view>
 					  	<text class="detail-goods-price">￥{{ item?.itemPrice }}</text>
 					  </view>
-					</scroll-view>
+					</view>
 
 					<view class="detail-summary-card">
 						<view class="detail-summary-row">
@@ -138,7 +138,6 @@ onLoad(async (options: {orderNo: string}) => {
 	margin-top: 28rpx;
 }
 .detail-goods-scroll {
-	height: 520rpx;
 	width: 100%;
 	margin-top: 22rpx;
 }

@@ -33,21 +33,27 @@
                   <text class="gui-card-name gui-primary-text gui-h4 gui-bold my-username" :style="{ color: usernameColor }">{{user.nickname}}</text>
                   <uni-icons v-if="user.isVip" custom-prefix="iconfont" type="VIP" class="gui-m-r-10" color="#f78414" size="15"></uni-icons>
                 </view>
+                <view class="my-user-tags">
+                  <text class="my-user-tag" :style="{ color: currentTheme.deepColor, background: currentTheme.lightColor }">{{ vipStatusLabel }}</text>
+                  <text class="my-user-tag my-user-tag-muted">ID {{ user.id || '--' }}</text>
+                </view>
+                <text class="my-profile-tip">{{ vipExpireLabel }}</text>
               </view>
             </view>
             <text class="gui-list-arrow-right gui-icons gui-color-gray" @click="handleGoToOtherPage('/pages/updateInfo/updateInfo')">&#xe601;</text>
           </view>
         </view>
 
+
         <view class="gui-creation-live">
-          <view class="gui-flex gui-row gui-nowrap gui-space-around">
+          <view class="gui-flex gui-row gui-nowrap gui-space-around my-quick-entry-row">
             <view @click="handleGoToOtherPage('/pages/myWork/myWork')" class="gui-flex gui-row gui-align-items-center animate-fade-up my-entry" style="animation-delay: 0.05s;" hover-class="my-entry-hover">
-              <text class="gui-icons gui-h3 gui-color-drak my-entry-icon">&#xe666;</text>
-              <text class="gui-p-l-10">创作中心</text>
+              <text class="gui-icons gui-h4 gui-color-drak my-entry-icon">&#xe666;</text>
+              <text class="my-entry-text">创作中心</text>
             </view>
             <view @click="getLiveRoom" class="gui-flex gui-row gui-align-items-center animate-fade-up my-entry" style="animation-delay: 0.15s;" hover-class="my-entry-hover">
-              <text class="iconfont gui-color-drak gui-h3 my-entry-icon">&#xe7d5;</text>
-              <text class="gui-p-l-10">录音/直播</text>
+              <text class="iconfont gui-color-drak gui-h4 my-entry-icon">&#xe7d5;</text>
+              <text class="my-entry-text">录音/直播</text>
             </view>
           </view>
         </view>
@@ -68,10 +74,11 @@
         </view>
       </view>
 
+
       <view class="gui-padding my-content-panel">
         <z-paging
           ref="zPagingRef"
-          :paging-style="{height:'760rpx'}"
+          :paging-style="{height:'980rpx'}"
           v-model="pageData[pageData.currentPageNav].list"
           @query="getListInfo"
           :fixed="false">
@@ -82,14 +89,14 @@
               :isCenter="true"
               :size="120"
               :margin="0"
-              padding="30rpx"
+              padding="20rpx"
               activeDirection="center"
-              lineHeight="50rpx"
-              activeFontSize="46rpx"
+              lineHeight="42rpx"
+              activeFontSize="40rpx"
               :activeLineClass="['gui-nav-scale', 'my-nav-underline']"
               @change="(index)=>navChange(index,navItems[index].id)"
             ></gui-switch-navigation>
-            <view style="height:20rpx;"></view>
+            <view style="height:8rpx;"></view>
           </template>
           <template #empty>
             <view class="my-empty animate-fade-up">
@@ -161,8 +168,10 @@ import ZPaging from "../../uni_modules/z-paging/components/z-paging/z-paging.vue
 import SubscribeItemCard from "../../components/SubscribeItemCard/SubscribeItemCard.vue"
 import { albumsService, liveService } from "../../api"
 import { CollectTrackInterface, HistoryTrackInterface, SubscribeAlbumsInterface } from "../../api/albums/interfaces"
+import { useTheme } from "../../hooks/useTheme"
 const userStore = useUserStore()
 let {user} = storeToRefs(userStore)
+const { currentTheme, applyTheme } = useTheme()
 
 const zPagingRef = ref<InstanceType<typeof ZPaging>>()
 
@@ -264,6 +273,20 @@ const emptyStateConfig = computed(() => {
     buttonText: '去首页看看'
   }
 })
+
+const vipStatusLabel = computed(() => user.value?.isVip ? 'VIP会员' : '普通用户')
+const vipExpireLabel = computed(() => {
+  if (user.value?.isVip && user.value?.vipExpireTime) {
+    return `会员有效期至 ${user.value.vipExpireTime}`
+  }
+  return '完善个人资料后，可获得更统一的账号展示体验'
+})
+
+const profileStats = computed(() => ([
+  { label: '订阅内容', value: pageData.subscribe.list.length },
+  { label: '收藏声音', value: pageData.collect.list.length },
+  { label: '最近收听', value: pageData.history.list.length }
+]))
 
 const triggerAvatarWiggle = () => {
   avatarWiggle.value = false
@@ -392,7 +415,8 @@ const handleGoToOtherPage = (route:string) => {
   }
 }
 onLoad(async () => {
-  console.log(1);
+  applyTheme(currentTheme.value.color)
+  await userStore.getAccountBalance()
 })
 // 获取当前用户的直播间
 const getLiveRoom = async () => {
@@ -438,6 +462,101 @@ page {
   position: relative;
   overflow: visible;
   background: transparent;
+}
+
+.my-user-tags {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 12rpx;
+  margin-top: 14rpx;
+}
+
+.my-user-tag {
+  padding: 8rpx 18rpx;
+  border-radius: 999rpx;
+  font-size: 20rpx;
+  font-weight: 600;
+}
+
+.my-user-tag-muted {
+  color: #8090ad;
+  background: rgba(255, 255, 255, 0.9);
+}
+
+.my-profile-tip {
+  display: block;
+  margin-top: 14rpx;
+  font-size: 22rpx;
+  line-height: 34rpx;
+  color: #97a1b4;
+}
+
+.my-summary-card {
+  margin-top: 18rpx;
+  padding: 26rpx 24rpx;
+  border-radius: 28rpx;
+  background: linear-gradient(180deg, #ffffff 0%, #fbfcff 100%);
+  box-shadow: 0 14rpx 34rpx rgba(53, 88, 168, 0.08);
+  border: 1rpx solid rgba(92, 137, 230, 0.08);
+}
+
+.my-summary-head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 18rpx;
+}
+
+.my-summary-title {
+  display: block;
+  font-size: 30rpx;
+  font-weight: 700;
+  color: #22304a;
+}
+
+.my-summary-desc {
+  display: block;
+  margin-top: 10rpx;
+  font-size: 22rpx;
+  line-height: 34rpx;
+  color: #95a0b6;
+}
+
+.my-summary-wallet {
+  flex-shrink: 0;
+  padding: 12rpx 18rpx;
+  border-radius: 20rpx;
+  font-size: 22rpx;
+  font-weight: 700;
+}
+
+.my-summary-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 16rpx;
+  margin-top: 22rpx;
+}
+
+.my-summary-item {
+  padding: 18rpx 12rpx;
+  border-radius: 22rpx;
+  background: #f6f9ff;
+  text-align: center;
+}
+
+.my-summary-value {
+  display: block;
+  font-size: 34rpx;
+  font-weight: 700;
+  color: #25314b;
+}
+
+.my-summary-label {
+  display: block;
+  margin-top: 8rpx;
+  font-size: 22rpx;
+  color: #8f9ab0;
 }
 
 .gui-card-img {
@@ -487,11 +606,17 @@ page {
 }
 
 .my-entry {
-  padding: 18rpx 24rpx;
-  border-radius: 22rpx;
+  padding: 12rpx 18rpx;
+  border-radius: 18rpx;
   background: transparent;
   box-shadow: none;
   transition: transform 0.25s ease-out;
+}
+
+.my-entry-text {
+  padding-left: 10rpx;
+  font-size: 24rpx;
+  color: #24304a;
 }
 
 .my-entry-hover:active {
@@ -507,8 +632,8 @@ page {
 }
 
 .my-feature-item {
-  padding: 22rpx 0 18rpx;
-  border-radius: 24rpx;
+  padding: 14rpx 0 12rpx;
+  border-radius: 18rpx;
   background: transparent;
   box-shadow: none;
   transition: transform 0.25s ease-out;
@@ -524,6 +649,7 @@ page {
 
 .my-feature-icon {
   color: #5a8dff !important;
+  font-size: 32rpx !important;
 }
 
 .my-feature-vip.my-feature-hover:active .my-feature-icon {
@@ -537,6 +663,75 @@ page {
   border-radius: 0;
   box-shadow: none;
   background: transparent;
+}
+
+.my-feature-panel {
+  padding-top: 10rpx;
+  padding-bottom: 10rpx;
+}
+
+.my-content-panel {
+  padding-top: 8rpx;
+}
+
+.my-service-panel {
+  margin: 18rpx 30rpx 0;
+}
+
+.my-service-card {
+  display: flex;
+  align-items: center;
+  padding: 24rpx;
+  border-radius: 28rpx;
+  background: linear-gradient(180deg, #ffffff 0%, #fbfcff 100%);
+  box-shadow: 0 12rpx 30rpx rgba(53, 88, 168, 0.08);
+  border: 1rpx solid rgba(92, 137, 230, 0.08);
+}
+
+.my-service-card + .my-service-card {
+  margin-top: 18rpx;
+}
+
+.my-service-icon {
+  width: 72rpx;
+  height: 72rpx;
+  border-radius: 22rpx;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 28rpx;
+  font-weight: 700;
+  flex-shrink: 0;
+}
+
+.my-service-icon-muted {
+  color: #6e84b8;
+  background: #eef3ff;
+}
+
+.my-service-main {
+  flex: 1;
+  min-width: 0;
+  margin: 0 18rpx;
+}
+
+.my-service-title {
+  display: block;
+  font-size: 26rpx;
+  font-weight: 700;
+  color: #24304a;
+}
+
+.my-service-desc {
+  display: block;
+  margin-top: 10rpx;
+  font-size: 22rpx;
+  line-height: 34rpx;
+  color: #96a0b5;
+}
+
+.my-service-arrow {
+  color: #b3bdd1;
 }
 
 .my-nav-underline {
@@ -660,11 +855,15 @@ page {
 
 .gui-creation-live {
     height: auto;
-    margin-top: 20rpx;
-    padding: 12rpx 0 4rpx;
+    margin-top: 10rpx;
+    padding: 4rpx 0 0;
     border-radius: 0;
     width: auto;
     box-shadow: none;
     background: transparent;
+}
+
+.my-quick-entry-row {
+  padding: 0 12rpx;
 }
 </style>
