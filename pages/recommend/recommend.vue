@@ -1,10 +1,11 @@
 <template>
   <gui-page :customHeader="true" :customFooter="true">
     <template v-slot:gHeader>
-      <view class="recommend-header">
-        <view class="recommend-header-pill">
-          <text class="recommend-header-title">灵感书单</text>
+      <view class="recommend-top-bar" :class="[headerSolid ? 'recommend-top-bar-solid' : 'recommend-top-bar-transparent']">
+        <view class="recommend-top-search" @click="handleToSearch">
+          <gui-search :customClass="['glass-search-bar']"></gui-search>
         </view>
+        <view class="recommend-top-reserve"></view>
       </view>
     </template>
 
@@ -23,6 +24,61 @@
             <text class="recommend-chip">精选书单</text>
             <text class="recommend-chip">疗愈陪伴</text>
             <text class="recommend-chip">高分热听</text>
+          </view>
+        </view>
+
+        <view class="recommend-rank-card animate-fade-up">
+          <view class="recommend-rank-head">
+            <view class="recommend-rank-tab-row">
+              <text
+                v-for="(tab, index) in rankTabs"
+                :key="tab.dimension"
+                class="recommend-rank-tab"
+                :class="{ 'recommend-rank-tab-active': currentRankTabIndex === index }"
+                @click="handleRankTabChange(index)">
+                {{ tab.label }}
+              </text>
+            </view>
+            <view class="recommend-rank-more" hover-class="recommend-rank-more-hover" @click="handleToRank">
+              <text class="recommend-rank-more-text">更多</text>
+              <uni-icons type="right" :size="14" color="#6b7280"></uni-icons>
+            </view>
+          </view>
+
+          <view class="recommend-rank-caption">
+            <text>{{ rankCategoryName }} · 热门音频榜单</text>
+          </view>
+
+          <view class="recommend-rank-list">
+            <view
+              v-for="(item, itemIndex) in rankList"
+              :key="`${currentRankDimension}-${item.id}`"
+              class="recommend-rank-item"
+              hover-class="recommend-rank-item-hover"
+              @click="handleToDetail(item.id)">
+              <image class="recommend-rank-cover" :src="item.coverUrl" mode="aspectFill"></image>
+              <text class="recommend-rank-index" :class="`recommend-rank-index-${itemIndex + 1}`">
+                {{ itemIndex + 1 }}
+              </text>
+              <view class="recommend-rank-item-main">
+                <text class="recommend-rank-item-title">{{ item.albumTitle }}</text>
+                <text class="recommend-rank-item-desc">{{ item.albumIntro || '精选热门内容，值得继续收听。' }}</text>
+                <view class="recommend-rank-item-meta">
+                  <text class="recommend-rank-item-badge">{{ currentRankLabel }}</text>
+                  <text class="recommend-rank-item-dot">·</text>
+                  <text class="recommend-rank-item-play">{{ formatPlayStat(item.playStatNum) }}</text>
+                </view>
+              </view>
+              <view class="recommend-rank-item-action">
+                <uni-icons type="right" :size="18" color="#5b6472"></uni-icons>
+              </view>
+            </view>
+            <view v-if="!rankList.length && rankLoading" class="recommend-rank-empty">
+              <text>榜单加载中...</text>
+            </view>
+            <view v-if="!rankList.length && !rankLoading" class="recommend-rank-empty">
+              <text>暂无榜单内容</text>
+            </view>
           </view>
         </view>
 
@@ -75,10 +131,9 @@
 
 <script setup lang="ts">
 import { computed, ref } from 'vue'
-import { onLoad, onReachBottom } from '@dcloudio/uni-app'
-import { search } from '../../api'
-import { albumsService } from '../../api/albums/albums'
-import { RecommendItemInterface } from '../../api/search/interfaces'
+import { onLoad, onReachBottom, onPageScroll, onShow } from '@dcloudio/uni-app'
+import { albumsService, courseService, search } from '../../api'
+import { RecommendItemInterface, SearchItemInterface } from '../../api/search/interfaces'
 
 type RecommendItem = RecommendItemInterface & {
   author: string
@@ -93,12 +148,26 @@ type RenderRecommendItem = RecommendItem & {
 const PAGE_SIZE = 20
 const WATERFALL_COLUMN_COUNT = 2
 const coverHeightPresets = [360, 430, 390, 470, 340, 450, 380, 420]
+const rankTabs = [
+  { label: '推荐榜', dimension: 'hotScore' },
+  { label: '播放榜', dimension: 'playStatNum' },
+  { label: '订阅榜', dimension: 'subscribeStatNum' },
+  { label: '购买榜', dimension: 'buyStatNum' }
+] as const
 const recommendList = ref<RecommendItem[]>([])
 const fetchedAlbumIds = new Set<number>()
 const currentPageNo = ref(1)
 const total = ref(0)
 const loading = ref(false)
 const finished = ref(false)
+const headerSolid = ref(false)
+const currentRankTabIndex = ref(0)
+const rankLoading = ref(false)
+const DEFAULT_RANK_CATEGORY_ID = 1
+const DEFAULT_RANK_CATEGORY_NAME = '推荐榜单'
+const rankCategoryName = ref(DEFAULT_RANK_CATEGORY_NAME)
+const rankCategoryId = ref<number | string>(DEFAULT_RANK_CATEGORY_ID)
+const rankList = ref<SearchItemInterface[]>([])
 
 const recommendationReasonPool = ['今日热门', '首页精选', '近期高热度', '频道好书', '值得一听', '大家都在看']
 
@@ -214,6 +283,91 @@ const handleToDetail = (albumId: number) => {
   })
 }
 
+const handleToRank = () => {
+  uni.navigateTo({
+    url: '/pages/rank/rank'
+  })
+}
+
+const handleToSearch = () => {
+  uni.navigateTo({
+    url: '/pages/search/search'
+  })
+}
+
+const handleRankTabChange = (index: number) => {
+  if (currentRankTabIndex.value === index) {
+    return
+  }
+  currentRankTabIndex.value = index
+  void getRankList()
+}
+
+const formatPlayStat = (value?: number) => {
+  const safeValue = Number(value || 0)
+  if (safeValue >= 100000000) {
+    return `${(safeValue / 100000000).toFixed(1).replace(/\.0$/, '')}亿次播放`
+  }
+  if (safeValue >= 10000) {
+    return `${(safeValue / 10000).toFixed(1).replace(/\.0$/, '')}万次播放`
+  }
+  return `${safeValue}次播放`
+}
+
+const currentRankDimension = computed(() => rankTabs[currentRankTabIndex.value]?.dimension || 'hotScore')
+const currentRankLabel = computed(() => rankTabs[currentRankTabIndex.value]?.label || '推荐榜')
+
+const getRankList = async () => {
+  if (!rankCategoryId.value) {
+    return
+  }
+  rankLoading.value = true
+  try {
+    const res: any = await albumsService.getRankingList(Number(rankCategoryId.value), currentRankDimension.value)
+    rankList.value = (res?.data || []).slice(0, 3)
+  } catch (error) {
+    console.log('getRankList error', error)
+    rankList.value = []
+  } finally {
+    rankLoading.value = false
+  }
+}
+
+const syncRankCategoryFromServer = async () => {
+  try {
+    const categoryRes: any = await courseService.getAllCategory()
+    const categoryList = Array.isArray(categoryRes?.data) ? categoryRes.data : []
+    const firstCategory = categoryList?.[0]
+    if (!firstCategory?.id) {
+      return
+    }
+
+    const nextCategoryId = firstCategory.id
+    const nextCategoryName = firstCategory.name || firstCategory.categoryName || DEFAULT_RANK_CATEGORY_NAME
+    const categoryChanged =
+      Number(rankCategoryId.value) !== Number(nextCategoryId) || rankCategoryName.value !== nextCategoryName
+
+    rankCategoryId.value = nextCategoryId
+    rankCategoryName.value = nextCategoryName
+
+    if (categoryChanged) {
+      await getRankList()
+    }
+  } catch (error) {
+    console.log('syncRankCategoryFromServer error', error)
+  }
+}
+
+const loadRankOverview = async () => {
+  try {
+    rankList.value = []
+    await getRankList()
+    await syncRankCategoryFromServer()
+  } catch (error) {
+    console.log('loadRankOverview error', error)
+  }
+}
+
 const handleCollect = async (albumId: number) => {
   const item = recommendList.value.find((recommendItem) => recommendItem.id === albumId)
   if (!item) {
@@ -256,46 +410,63 @@ const handleHate = async (albumId: number) => {
 }
 
 onLoad(async () => {
-  await fillRecommendBatch()
+  await Promise.all([fillRecommendBatch(), loadRankOverview()])
+})
+
+onShow(() => {
+  if (!rankList.value.length && !rankLoading.value) {
+    void loadRankOverview()
+  }
 })
 
 onReachBottom(async () => {
   await fillRecommendBatch()
 })
+
+onPageScroll((event) => {
+  headerSolid.value = (event?.scrollTop || 0) >= 20
+})
 </script>
 
 <style scoped lang="scss">
-.recommend-header {
+.recommend-top-bar {
   height: 44px;
   display: flex;
   align-items: center;
-  justify-content: center;
-  background: rgba(255, 255, 255, 0.82);
+  gap: 16rpx;
+  padding: 0 20rpx;
+  transition: background 350ms ease, backdrop-filter 350ms ease, -webkit-backdrop-filter 350ms ease;
+}
+
+.recommend-top-bar-solid {
+  background: rgba(255, 255, 255, 0.92);
   backdrop-filter: blur(18px);
   -webkit-backdrop-filter: blur(18px);
 }
 
-.recommend-header-pill {
-  padding: 10rpx 28rpx;
-  border-radius: 999rpx;
-  background: rgba(255, 255, 255, 0.72);
-  border: 1rpx solid rgba(255, 255, 255, 0.9);
-  box-shadow: 0 10rpx 24rpx rgba(31, 41, 55, 0.06);
+.recommend-top-bar-transparent {
+  background: rgba(255, 255, 255, 0.42);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
 }
 
-.recommend-header-title {
-  display: block;
-  font-size: 28rpx;
-  font-weight: 700;
-  letter-spacing: 4rpx;
-  color: #1f2937;
+.recommend-top-search {
+  flex: 1;
+  min-width: 0;
+}
+
+.recommend-top-reserve {
+  width: 200rpx;
+  display: flex;
+  justify-content: flex-start;
+  align-items: center;
 }
 
 .recommend-page {
   position: relative;
   min-height: calc(100vh - 44px - 160rpx);
-  padding: 24rpx 18rpx 0;
-  background: linear-gradient(180deg, #f7faff 0%, #f9fbff 52%, #f5f6fa 100%);
+  padding: 20rpx 18rpx 0;
+  background: linear-gradient(180deg, #eef6ff 0%, #f6f8fc 46%, #f4f5f8 100%);
   overflow: hidden;
 }
 
@@ -325,11 +496,11 @@ onReachBottom(async () => {
   position: relative;
   z-index: 1;
   overflow: hidden;
-  padding: 30rpx 26rpx 28rpx;
+  padding: 28rpx 26rpx 24rpx;
   border-radius: 34rpx;
-  background: linear-gradient(135deg, rgba(255,255,255,0.96) 0%, rgba(244,248,255,0.98) 52%, rgba(238,245,255,0.98) 100%);
-  box-shadow: 0 20rpx 42rpx rgba(31, 41, 55, 0.08);
-  border: 1rpx solid rgba(255,255,255,0.88);
+  background: linear-gradient(135deg, rgba(255,255,255,0.96) 0%, rgba(247,250,255,0.98) 52%, rgba(240,246,255,0.98) 100%);
+  box-shadow: 0 18rpx 36rpx rgba(31, 41, 55, 0.08);
+  border: 1rpx solid rgba(255,255,255,0.9);
 }
 
 .recommend-hero-decor {
@@ -386,7 +557,7 @@ onReachBottom(async () => {
   display: flex;
   flex-wrap: wrap;
   gap: 14rpx;
-  margin-top: 22rpx;
+  margin-top: 18rpx;
 }
 
 .recommend-chip {
@@ -399,10 +570,217 @@ onReachBottom(async () => {
   box-shadow: inset 0 1rpx 0 rgba(255,255,255,0.88);
 }
 
+.recommend-rank-card {
+  position: relative;
+  z-index: 1;
+  margin-top: 18rpx;
+  padding: 22rpx 22rpx 18rpx;
+  border-radius: 32rpx;
+  background: rgba(255, 255, 255, 0.95);
+  box-shadow: 0 18rpx 38rpx rgba(31, 41, 55, 0.08);
+  border: 1rpx solid rgba(255, 255, 255, 0.92);
+}
+
+.recommend-rank-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12rpx;
+}
+
+.recommend-rank-tab-row {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  align-items: center;
+  gap: 24rpx;
+  overflow-x: auto;
+  white-space: nowrap;
+}
+
+.recommend-rank-tab {
+  position: relative;
+  flex-shrink: 0;
+  padding-bottom: 10rpx;
+  font-size: 28rpx;
+  font-weight: 600;
+  color: #a1a7b2;
+  transition: color 0.18s ease;
+}
+
+.recommend-rank-tab-active {
+  color: #111827;
+}
+
+.recommend-rank-tab-active::after {
+  content: '';
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  height: 5rpx;
+  border-radius: 999rpx;
+  background: linear-gradient(90deg, #1677ff 0%, #68a7ff 100%);
+}
+
+.recommend-rank-more {
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  gap: 6rpx;
+  padding: 8rpx 14rpx;
+  border-radius: 999rpx;
+  background: #f5f7fb;
+}
+
+.recommend-rank-more-hover {
+  opacity: 0.88;
+}
+
+.recommend-rank-more-text {
+  font-size: 22rpx;
+  color: #6b7280;
+}
+
+.recommend-rank-caption {
+  margin-top: 14rpx;
+  font-size: 22rpx;
+  color: #9aa3af;
+}
+
+.recommend-rank-list {
+  display: flex;
+  flex-direction: column;
+  gap: 12rpx;
+  margin-top: 12rpx;
+  min-height: 372rpx;
+}
+
+.recommend-rank-item {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 18rpx;
+  padding: 12rpx 4rpx;
+  border-radius: 22rpx;
+}
+
+.recommend-rank-item-hover {
+  background: rgba(247, 249, 252, 0.95);
+}
+
+.recommend-rank-cover {
+  width: 116rpx;
+  height: 116rpx;
+  border-radius: 16rpx;
+  flex-shrink: 0;
+  background: #edf2f7;
+}
+
+.recommend-rank-index {
+  width: 28rpx;
+  text-align: center;
+  font-size: 40rpx;
+  font-weight: 700;
+  flex-shrink: 0;
+}
+
+.recommend-rank-index-1 {
+  color: #f59e0b;
+}
+
+.recommend-rank-index-2 {
+  color: #8aa0b8;
+}
+
+.recommend-rank-index-3 {
+  color: #d97706;
+}
+
+.recommend-rank-item-main {
+  flex: 1;
+  min-width: 0;
+}
+
+.recommend-rank-item-title {
+  display: -webkit-box;
+  overflow: hidden;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 1;
+  font-size: 32rpx;
+  line-height: 1.35;
+  font-weight: 700;
+  color: #1f2937;
+}
+
+.recommend-rank-item-desc {
+  display: -webkit-box;
+  overflow: hidden;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 1;
+  margin-top: 10rpx;
+  font-size: 24rpx;
+  line-height: 1.5;
+  color: #6b7280;
+}
+
+.recommend-rank-item-meta {
+  display: flex;
+  align-items: center;
+  gap: 10rpx;
+  margin-top: 12rpx;
+  min-width: 0;
+}
+
+.recommend-rank-item-badge {
+  flex-shrink: 0;
+  padding: 4rpx 10rpx;
+  border-radius: 10rpx;
+  font-size: 20rpx;
+  font-weight: 700;
+  color: #5a7fc0;
+  background: #edf4ff;
+}
+
+.recommend-rank-item-dot {
+  flex-shrink: 0;
+  font-size: 20rpx;
+  color: #a3acb8;
+}
+
+.recommend-rank-item-play {
+  min-width: 0;
+  font-size: 22rpx;
+  color: #8b95a1;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.recommend-rank-item-action {
+  width: 52rpx;
+  height: 52rpx;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  background: #f3f5f8;
+}
+
+.recommend-rank-empty {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 24rpx;
+  color: #9ca3af;
+}
+
 .waterfall-layout {
   position: relative;
   z-index: 1;
-  margin-top: 22rpx;
+  margin-top: 18rpx;
   display: flex;
   align-items: flex-start;
   gap: 18rpx;
