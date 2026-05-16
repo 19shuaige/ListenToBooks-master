@@ -19,7 +19,8 @@
           <view class="recommend-hero-noise"></view>
           <view class="recommend-hero-aurora recommend-hero-aurora-primary" :style="heroAuroraPrimaryStyle"></view>
           <view class="recommend-hero-aurora recommend-hero-aurora-secondary" :style="heroAuroraSecondaryStyle"></view>
-          <view class="recommend-hero-ring"></view>
+          <view class="recommend-hero-ribbon"></view>
+          <view class="recommend-hero-orb"></view>
 
           <view class="recommend-hero-content" :style="heroContentStyle">
             <view class="recommend-hero-kicker-row">
@@ -28,7 +29,7 @@
               <text class="recommend-hero-kicker-badge">{{ currentRankLabel }}</text>
             </view>
             <text class="recommend-hero-title">今天听点有意思的</text>
-            <text class="recommend-hero-subtitle">围绕热听榜单、口碑内容和陪伴场景做首屏聚合，让推荐页更像听书产品本身，而不是一张单独的活动海报。</text>
+            <text class="recommend-hero-subtitle">把热听内容、陪伴场景和当下最值得点开的声音，整理成一个更顺眼也更好逛的首屏入口。</text>
             <view class="recommend-chip-row">
               <text class="recommend-chip">精选书单</text>
               <text class="recommend-chip">疗愈陪伴</text>
@@ -42,28 +43,36 @@
               </view>
               <view class="recommend-hero-action recommend-hero-action-secondary" hover-class="recommend-hero-action-hover" @click="handleToRank">
                 <text class="recommend-hero-action-text">查看榜单</text>
-                <uni-icons type="right" :size="14" color="#ffffff"></uni-icons>
+                <uni-icons type="right" :size="14" color="#111827"></uni-icons>
               </view>
             </view>
 
-            <view class="recommend-hero-insight-row">
-              <view class="recommend-hero-insight">
-                <text class="recommend-hero-insight-value">{{ rankTabs.length }}</text>
-                <text class="recommend-hero-insight-label">实时榜单维度</text>
+            <view class="recommend-hero-metric-row">
+              <view class="recommend-hero-metric-card">
+                <text class="recommend-hero-metric-value">{{ rankTabs.length }}</text>
+                <text class="recommend-hero-metric-label">榜单维度</text>
               </view>
-              <view class="recommend-hero-insight">
-                <text class="recommend-hero-insight-value">{{ rankList.length || 3 }}</text>
-                <text class="recommend-hero-insight-label">首屏精选位</text>
+              <view class="recommend-hero-metric-card">
+                <text class="recommend-hero-metric-value">{{ rankList.length || 3 }}</text>
+                <text class="recommend-hero-metric-label">精选内容</text>
               </view>
-              <view class="recommend-hero-insight">
-                <text class="recommend-hero-insight-value">{{ heroPrimaryAlbum ? currentRankLabel : '热门' }}</text>
-                <text class="recommend-hero-insight-label">当前推荐重心</text>
+              <view class="recommend-hero-metric-card recommend-hero-metric-card-wide">
+                <text class="recommend-hero-metric-value">{{ heroPrimaryAlbum ? currentRankLabel : '热门推荐' }}</text>
+                <text class="recommend-hero-metric-label">当前主推方向</text>
               </view>
             </view>
           </view>
 
           <view class="recommend-hero-visual" :style="heroVisualStyle">
             <view class="recommend-hero-preview-card">
+              <view class="recommend-hero-preview-topline">
+                <view class="recommend-hero-preview-topline-left">
+                  <text class="recommend-hero-preview-topline-dot"></text>
+                  <text class="recommend-hero-preview-topline-text">今日主推</text>
+                </view>
+                <text class="recommend-hero-preview-topline-tag">{{ rankCategoryName }}</text>
+              </view>
+
               <view class="recommend-hero-preview-cover-wrap">
                 <image
                   v-if="heroPreviewCover"
@@ -97,16 +106,17 @@
                   <text class="recommend-hero-preview-meta-text">{{ rankCategoryName }}</text>
                 </view>
               </view>
-            </view>
 
-            <view class="recommend-hero-float-card recommend-hero-float-card-top">
-              <text class="recommend-hero-float-label">听书馆精选</text>
-              <text class="recommend-hero-float-value">把更适合沉浸收听的内容放在前面</text>
-            </view>
-
-            <view class="recommend-hero-float-card recommend-hero-float-card-bottom">
-              <text class="recommend-hero-float-label">最近热听</text>
-              <text class="recommend-hero-float-value">{{ heroSecondaryAlbum?.albumTitle || '陪伴感内容持续升温' }}</text>
+              <view class="recommend-hero-preview-bottom">
+                <view class="recommend-hero-preview-bottom-pill">
+                  <text class="recommend-hero-preview-bottom-pill-label">最近热听</text>
+                  <text class="recommend-hero-preview-bottom-pill-value">{{ heroSecondaryAlbum?.albumTitle || '值得先点开听听' }}</text>
+                </view>
+                <view class="recommend-hero-preview-bottom-pill recommend-hero-preview-bottom-pill-mini">
+                  <text class="recommend-hero-preview-bottom-pill-label">热度</text>
+                  <text class="recommend-hero-preview-bottom-pill-value">{{ heroPrimaryAlbum ? currentRankLabel : '持续更新' }}</text>
+                </view>
+              </view>
             </view>
           </view>
         </view>
@@ -164,6 +174,15 @@
               <text>暂无榜单内容</text>
             </view>
           </view>
+        </view>
+
+        <view class="recommend-feed-divider animate-fade-up">
+          <view class="recommend-feed-divider-line"></view>
+          <view class="recommend-feed-divider-content">
+            <text class="recommend-feed-divider-title">继续发现好内容</text>
+            <text class="recommend-feed-divider-desc">以下为你整理更多值得点开的声音内容</text>
+          </view>
+          <view class="recommend-feed-divider-line"></view>
         </view>
 
         <view class="waterfall-layout">
@@ -637,7 +656,8 @@ onPageScroll((event) => {
 .recommend-hero-grid,
 .recommend-hero-noise,
 .recommend-hero-aurora,
-.recommend-hero-ring {
+.recommend-hero-ribbon,
+.recommend-hero-orb {
   position: absolute;
   pointer-events: none;
 }
@@ -680,8 +700,23 @@ onPageScroll((event) => {
   background: radial-gradient(circle, rgba(255, 255, 255, 1) 0%, rgba(255, 255, 255, 0) 76%);
 }
 
-.recommend-hero-ring {
-  display: none;
+.recommend-hero-ribbon {
+  top: 0;
+  right: -64rpx;
+  width: 340rpx;
+  height: 180rpx;
+  border-radius: 0 0 0 160rpx;
+  background: linear-gradient(135deg, rgba(102, 169, 255, 0.22) 0%, rgba(22, 119, 255, 0.08) 100%);
+}
+
+.recommend-hero-orb {
+  right: 24rpx;
+  top: 26rpx;
+  width: 140rpx;
+  height: 140rpx;
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(255, 255, 255, 0.92) 0%, rgba(214, 233, 255, 0.32) 62%, rgba(214, 233, 255, 0) 100%);
+  box-shadow: inset 0 1rpx 0 rgba(255, 255, 255, 0.88);
 }
 
 .recommend-hero-content,
@@ -723,9 +758,9 @@ onPageScroll((event) => {
   border-radius: 999rpx;
   font-size: 20rpx;
   font-weight: 700;
-  color: #111827;
-  background: #ffffff;
-  border: 1rpx solid rgba(229, 231, 235, 0.9);
+  color: #1677ff;
+  background: rgba(22, 119, 255, 0.08);
+  border: 1rpx solid rgba(102, 169, 255, 0.2);
   backdrop-filter: blur(12rpx);
   -webkit-backdrop-filter: blur(12rpx);
 }
@@ -733,11 +768,12 @@ onPageScroll((event) => {
 .recommend-hero-title {
   display: block;
   margin-top: 14rpx;
-  font-size: 58rpx;
-  line-height: 1.14;
+  font-size: 60rpx;
+  line-height: 1.12;
   font-weight: 700;
   color: #111827;
-  text-shadow: 0 8rpx 20rpx rgba(15, 23, 42, 0.14);
+  letter-spacing: -1rpx;
+  text-shadow: 0 8rpx 20rpx rgba(110, 168, 255, 0.1);
 }
 
 .recommend-hero-subtitle {
@@ -745,7 +781,7 @@ onPageScroll((event) => {
   margin-top: 16rpx;
   max-width: 640rpx;
   font-size: 24rpx;
-  line-height: 1.78;
+  line-height: 1.72;
   color: #6b7280;
 }
 
@@ -760,10 +796,10 @@ onPageScroll((event) => {
   padding: 12rpx 20rpx;
   border-radius: 999rpx;
   font-size: 22rpx;
-  color: #4b5563;
-  background: #ffffff;
-  border: 1rpx solid rgba(229, 231, 235, 0.9);
-  box-shadow: inset 0 1rpx 0 rgba(255,255,255,0.9);
+  color: #3b5b9a;
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.98) 0%, rgba(240, 247, 255, 0.96) 100%);
+  border: 1rpx solid rgba(102, 169, 255, 0.18);
+  box-shadow: 0 8rpx 16rpx rgba(22, 119, 255, 0.06);
 }
 
 .recommend-hero-action-row {
@@ -787,15 +823,16 @@ onPageScroll((event) => {
 }
 
 .recommend-hero-action-primary {
-  background: #1677ff;
+  background: linear-gradient(135deg, #66a9ff 0%, #1677ff 100%);
   box-shadow: 0 16rpx 28rpx rgba(22, 119, 255, 0.18);
 }
 
 .recommend-hero-action-secondary {
-  background: #ffffff;
-  border: 1rpx solid rgba(229, 231, 235, 0.9);
+  background: rgba(255, 255, 255, 0.9);
+  border: 1rpx solid rgba(102, 169, 255, 0.16);
   backdrop-filter: blur(12rpx);
   -webkit-backdrop-filter: blur(12rpx);
+  box-shadow: 0 10rpx 20rpx rgba(15, 23, 42, 0.05);
 }
 
 .recommend-hero-action-hover {
@@ -813,24 +850,28 @@ onPageScroll((event) => {
   color: #121212;
 }
 
-.recommend-hero-insight-row {
+.recommend-hero-metric-row {
   display: flex;
   gap: 14rpx;
   margin-top: 24rpx;
   flex-wrap: wrap;
 }
 
-.recommend-hero-insight {
-  min-width: 180rpx;
+.recommend-hero-metric-card {
+  flex: 1;
+  min-width: 160rpx;
   padding: 18rpx 20rpx;
   border-radius: 24rpx;
-  background: #ffffff;
-  border: 1rpx solid rgba(229, 231, 235, 0.9);
-  backdrop-filter: blur(10rpx);
-  -webkit-backdrop-filter: blur(10rpx);
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.98) 0%, rgba(247, 251, 255, 0.96) 100%);
+  border: 1rpx solid rgba(102, 169, 255, 0.14);
+  box-shadow: 0 12rpx 24rpx rgba(22, 119, 255, 0.05);
 }
 
-.recommend-hero-insight-value {
+.recommend-hero-metric-card-wide {
+  flex: 1.2;
+}
+
+.recommend-hero-metric-value {
   display: block;
   font-size: 30rpx;
   line-height: 1.2;
@@ -838,7 +879,7 @@ onPageScroll((event) => {
   color: #111827;
 }
 
-.recommend-hero-insight-label {
+.recommend-hero-metric-label {
   display: block;
   margin-top: 8rpx;
   font-size: 20rpx;
@@ -846,20 +887,71 @@ onPageScroll((event) => {
 }
 
 .recommend-hero-visual {
-  min-height: 286rpx;
+  min-height: 320rpx;
 }
 
 .recommend-hero-preview-card {
   position: relative;
-  display: flex;
+  display: grid;
+  grid-template-columns: 168rpx minmax(0, 1fr);
   gap: 18rpx;
-  padding: 20rpx;
-  border-radius: 30rpx;
-  background: #ffffff;
-  border: 1rpx solid rgba(229, 231, 235, 0.9);
-  box-shadow: rgba(15, 23, 42, 0.08) 0 16rpx 32rpx;
+  padding: 22rpx;
+  border-radius: 32rpx;
+  background: linear-gradient(180deg, #ffffff 0%, #f7fbff 100%);
+  border: 1rpx solid rgba(102, 169, 255, 0.16);
+  box-shadow: rgba(22, 119, 255, 0.08) 0 18rpx 36rpx;
   backdrop-filter: blur(14rpx);
   -webkit-backdrop-filter: blur(14rpx);
+}
+
+.recommend-hero-preview-card::after {
+  content: '';
+  position: absolute;
+  right: -18rpx;
+  bottom: -24rpx;
+  width: 180rpx;
+  height: 180rpx;
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(102, 169, 255, 0.18) 0%, rgba(102, 169, 255, 0) 72%);
+  pointer-events: none;
+}
+
+.recommend-hero-preview-topline {
+  grid-column: 1 / -1;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16rpx;
+}
+
+.recommend-hero-preview-topline-left {
+  display: flex;
+  align-items: center;
+  gap: 10rpx;
+}
+
+.recommend-hero-preview-topline-dot {
+  width: 12rpx;
+  height: 12rpx;
+  border-radius: 50%;
+  background: #1677ff;
+  box-shadow: 0 0 0 8rpx rgba(22, 119, 255, 0.1);
+}
+
+.recommend-hero-preview-topline-text {
+  font-size: 20rpx;
+  font-weight: 700;
+  color: #3b5b9a;
+  letter-spacing: 1rpx;
+}
+
+.recommend-hero-preview-topline-tag {
+  flex-shrink: 0;
+  padding: 8rpx 16rpx;
+  border-radius: 999rpx;
+  font-size: 20rpx;
+  color: #1677ff;
+  background: rgba(22, 119, 255, 0.08);
 }
 
 .recommend-hero-preview-cover-wrap {
@@ -873,14 +965,15 @@ onPageScroll((event) => {
   width: 100%;
   height: 100%;
   border-radius: 24rpx;
-  background: #ffffff;
+  background: linear-gradient(180deg, #edf5ff 0%, #ffffff 100%);
+  box-shadow: 0 14rpx 26rpx rgba(22, 119, 255, 0.12);
 }
 
 .recommend-hero-preview-cover-fallback {
   display: flex;
   align-items: center;
   justify-content: center;
-  background: #ffffff;
+  background: linear-gradient(180deg, #eaf3ff 0%, #ffffff 100%);
 }
 
 .recommend-hero-preview-cover-text {
@@ -898,7 +991,7 @@ onPageScroll((event) => {
   border-radius: 999rpx;
   font-size: 18rpx;
   font-weight: 700;
-  color: #121212;
+  color: #ffffff;
   background: #1677ff;
   box-shadow: 0 10rpx 18rpx rgba(22, 119, 255, 0.2);
 }
@@ -921,7 +1014,7 @@ onPageScroll((event) => {
   overflow: hidden;
   -webkit-box-orient: vertical;
   -webkit-line-clamp: 2;
-  margin-top: 10rpx;
+  margin-top: 8rpx;
   font-size: 30rpx;
   line-height: 1.35;
   font-weight: 700;
@@ -944,7 +1037,7 @@ onPageScroll((event) => {
   align-items: flex-end;
   gap: 8rpx;
   height: 68rpx;
-  margin-top: 18rpx;
+  margin-top: 16rpx;
 }
 
 .recommend-hero-wave-bar {
@@ -959,7 +1052,7 @@ onPageScroll((event) => {
   display: flex;
   align-items: center;
   gap: 10rpx;
-  margin-top: 16rpx;
+  margin-top: 14rpx;
   flex-wrap: wrap;
 }
 
@@ -975,39 +1068,36 @@ onPageScroll((event) => {
   background: rgba(22, 119, 255, 0.8);
 }
 
-.recommend-hero-float-card {
-  position: absolute;
+.recommend-hero-preview-bottom {
+  grid-column: 1 / -1;
+  display: flex;
+  gap: 12rpx;
+  margin-top: 4rpx;
+  flex-wrap: wrap;
+}
+
+.recommend-hero-preview-bottom-pill {
+  flex: 1;
+  min-width: 0;
   padding: 16rpx 18rpx;
   border-radius: 22rpx;
-  background: #ffffff;
-  border: 1rpx solid rgba(229, 231, 235, 0.9);
-  box-shadow: rgba(15, 23, 42, 0.08) 0 12rpx 24rpx;
-  backdrop-filter: blur(14rpx);
-  -webkit-backdrop-filter: blur(14rpx);
-  animation: heroFloat 4.2s ease-in-out infinite;
+  background: rgba(255, 255, 255, 0.88);
+  border: 1rpx solid rgba(102, 169, 255, 0.12);
 }
 
-.recommend-hero-float-card-top {
-  top: -10rpx;
-  right: 24rpx;
+.recommend-hero-preview-bottom-pill-mini {
+  flex: 0 0 170rpx;
 }
 
-.recommend-hero-float-card-bottom {
-  left: 18rpx;
-  bottom: -12rpx;
-  animation-delay: 1.2s;
-}
-
-.recommend-hero-float-label {
+.recommend-hero-preview-bottom-pill-label {
   display: block;
   font-size: 18rpx;
   color: #6b7280;
 }
 
-.recommend-hero-float-value {
+.recommend-hero-preview-bottom-pill-value {
   display: block;
   margin-top: 8rpx;
-  max-width: 240rpx;
   font-size: 22rpx;
   line-height: 1.45;
   font-weight: 700;
@@ -1036,15 +1126,6 @@ onPageScroll((event) => {
   }
 }
 
-@keyframes heroFloat {
-  0%, 100% {
-    transform: translate3d(0, 0, 0);
-  }
-  50% {
-    transform: translate3d(0, -10rpx, 0);
-  }
-}
-
 @media screen and (min-width: 768px) {
   .recommend-hero {
     flex-direction: row;
@@ -1060,6 +1141,10 @@ onPageScroll((event) => {
     min-width: 0;
     display: flex;
     align-items: center;
+  }
+
+  .recommend-hero-preview-card {
+    grid-template-columns: 188rpx minmax(0, 1fr);
   }
 }
 
@@ -1270,6 +1355,43 @@ onPageScroll((event) => {
   justify-content: center;
   font-size: 24rpx;
   color: #6b7280;
+}
+
+.recommend-feed-divider {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  align-items: center;
+  gap: 18rpx;
+  margin: 22rpx 8rpx 4rpx;
+}
+
+.recommend-feed-divider-line {
+  flex: 1;
+  height: 2rpx;
+  background: linear-gradient(90deg, rgba(102, 169, 255, 0) 0%, rgba(102, 169, 255, 0.32) 100%);
+}
+
+.recommend-feed-divider-content {
+  flex-shrink: 0;
+  padding: 0 8rpx;
+  text-align: center;
+}
+
+.recommend-feed-divider-title {
+  display: block;
+  font-size: 26rpx;
+  line-height: 1.35;
+  font-weight: 700;
+  color: #3b4a61;
+}
+
+.recommend-feed-divider-desc {
+  display: block;
+  margin-top: 6rpx;
+  font-size: 20rpx;
+  line-height: 1.5;
+  color: #9ca3af;
 }
 
 .waterfall-layout {
