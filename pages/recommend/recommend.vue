@@ -15,15 +15,99 @@
         <view class="recommend-glow recommend-glow-right"></view>
 
         <view class="recommend-hero animate-fade-up">
-          <view class="recommend-hero-decor recommend-hero-decor-left"></view>
-          <view class="recommend-hero-decor recommend-hero-decor-right"></view>
-          <text class="recommend-hero-kicker">DAILY CURATION</text>
-          <text class="recommend-hero-title">今天想听点什么</text>
-          <text class="recommend-hero-subtitle">从热度、口碑与主题里，挑出更值得停留的声音内容</text>
-          <view class="recommend-chip-row">
-            <text class="recommend-chip">精选书单</text>
-            <text class="recommend-chip">疗愈陪伴</text>
-            <text class="recommend-chip">高分热听</text>
+          <view class="recommend-hero-grid"></view>
+          <view class="recommend-hero-noise"></view>
+          <view class="recommend-hero-aurora recommend-hero-aurora-primary" :style="heroAuroraPrimaryStyle"></view>
+          <view class="recommend-hero-aurora recommend-hero-aurora-secondary" :style="heroAuroraSecondaryStyle"></view>
+          <view class="recommend-hero-ring"></view>
+
+          <view class="recommend-hero-content" :style="heroContentStyle">
+            <view class="recommend-hero-kicker-row">
+              <view class="recommend-hero-live-dot"></view>
+              <text class="recommend-hero-kicker">听书馆推荐</text>
+              <text class="recommend-hero-kicker-badge">{{ currentRankLabel }}</text>
+            </view>
+            <text class="recommend-hero-title">今天听点有意思的</text>
+            <text class="recommend-hero-subtitle">围绕热听榜单、口碑内容和陪伴场景做首屏聚合，让推荐页更像听书产品本身，而不是一张单独的活动海报。</text>
+            <view class="recommend-chip-row">
+              <text class="recommend-chip">精选书单</text>
+              <text class="recommend-chip">疗愈陪伴</text>
+              <text class="recommend-chip">高分热听</text>
+            </view>
+
+            <view class="recommend-hero-action-row">
+              <view class="recommend-hero-action recommend-hero-action-primary" hover-class="recommend-hero-action-hover" @click="handleToSearch">
+                <uni-icons type="search" :size="16" color="#121212"></uni-icons>
+                <text class="recommend-hero-action-text recommend-hero-action-text-light">去搜索</text>
+              </view>
+              <view class="recommend-hero-action recommend-hero-action-secondary" hover-class="recommend-hero-action-hover" @click="handleToRank">
+                <text class="recommend-hero-action-text">查看榜单</text>
+                <uni-icons type="right" :size="14" color="#ffffff"></uni-icons>
+              </view>
+            </view>
+
+            <view class="recommend-hero-insight-row">
+              <view class="recommend-hero-insight">
+                <text class="recommend-hero-insight-value">{{ rankTabs.length }}</text>
+                <text class="recommend-hero-insight-label">实时榜单维度</text>
+              </view>
+              <view class="recommend-hero-insight">
+                <text class="recommend-hero-insight-value">{{ rankList.length || 3 }}</text>
+                <text class="recommend-hero-insight-label">首屏精选位</text>
+              </view>
+              <view class="recommend-hero-insight">
+                <text class="recommend-hero-insight-value">{{ heroPrimaryAlbum ? currentRankLabel : '热门' }}</text>
+                <text class="recommend-hero-insight-label">当前推荐重心</text>
+              </view>
+            </view>
+          </view>
+
+          <view class="recommend-hero-visual" :style="heroVisualStyle">
+            <view class="recommend-hero-preview-card">
+              <view class="recommend-hero-preview-cover-wrap">
+                <image
+                  v-if="heroPreviewCover"
+                  class="recommend-hero-preview-cover"
+                  :src="heroPreviewCover"
+                  mode="aspectFill">
+                </image>
+                <view v-else class="recommend-hero-preview-cover recommend-hero-preview-cover-fallback">
+                  <text class="recommend-hero-preview-cover-text">TS</text>
+                </view>
+                <view class="recommend-hero-preview-badge">TOP 1</view>
+              </view>
+
+              <view class="recommend-hero-preview-body">
+                <text class="recommend-hero-preview-label">{{ currentRankLabel }}</text>
+                <text class="recommend-hero-preview-title">{{ heroPreviewTitle }}</text>
+                <text class="recommend-hero-preview-subtitle">{{ heroPreviewSubtitle }}</text>
+
+                <view class="recommend-hero-wave-row">
+                  <view
+                    v-for="(barHeight, barIndex) in heroWaveBars"
+                    :key="`hero-wave-${barIndex}`"
+                    class="recommend-hero-wave-bar"
+                    :style="{ height: `${barHeight}rpx`, animationDelay: `${barIndex * 0.08}s` }">
+                  </view>
+                </view>
+
+                <view class="recommend-hero-preview-meta">
+                  <text class="recommend-hero-preview-meta-text">{{ heroPrimaryAlbum ? formatPlayStat(heroPrimaryAlbum.playStatNum) : '实时热度持续更新' }}</text>
+                  <text class="recommend-hero-preview-meta-dot"></text>
+                  <text class="recommend-hero-preview-meta-text">{{ rankCategoryName }}</text>
+                </view>
+              </view>
+            </view>
+
+            <view class="recommend-hero-float-card recommend-hero-float-card-top">
+              <text class="recommend-hero-float-label">听书馆精选</text>
+              <text class="recommend-hero-float-value">把更适合沉浸收听的内容放在前面</text>
+            </view>
+
+            <view class="recommend-hero-float-card recommend-hero-float-card-bottom">
+              <text class="recommend-hero-float-label">最近热听</text>
+              <text class="recommend-hero-float-value">{{ heroSecondaryAlbum?.albumTitle || '陪伴感内容持续升温' }}</text>
+            </view>
           </view>
         </view>
 
@@ -41,7 +125,7 @@
             </view>
             <view class="recommend-rank-more" hover-class="recommend-rank-more-hover" @click="handleToRank">
               <text class="recommend-rank-more-text">更多</text>
-              <uni-icons type="right" :size="14" color="#6b7280"></uni-icons>
+              <uni-icons type="right" :size="14" color="#cbcbcb"></uni-icons>
             </view>
           </view>
 
@@ -70,7 +154,7 @@
                 </view>
               </view>
               <view class="recommend-rank-item-action">
-                <uni-icons type="right" :size="18" color="#5b6472"></uni-icons>
+                <uni-icons type="right" :size="18" color="#cbcbcb"></uni-icons>
               </view>
             </view>
             <view v-if="!rankList.length && rankLoading" class="recommend-rank-empty">
@@ -170,6 +254,8 @@ const rankCategoryId = ref<number | string>(DEFAULT_RANK_CATEGORY_ID)
 const rankList = ref<SearchItemInterface[]>([])
 
 const recommendationReasonPool = ['今日热门', '首页精选', '近期高热度', '频道好书', '值得一听', '大家都在看']
+const heroWaveBars = [24, 42, 30, 56, 36, 48, 28, 52]
+const pageScrollTop = ref(0)
 
 const resetRecommendState = () => {
   recommendList.value = []
@@ -316,6 +402,23 @@ const formatPlayStat = (value?: number) => {
 
 const currentRankDimension = computed(() => rankTabs[currentRankTabIndex.value]?.dimension || 'hotScore')
 const currentRankLabel = computed(() => rankTabs[currentRankTabIndex.value]?.label || '推荐榜')
+const heroPrimaryAlbum = computed(() => rankList.value[0] || null)
+const heroSecondaryAlbum = computed(() => rankList.value[1] || null)
+const heroPreviewTitle = computed(() => heroPrimaryAlbum.value?.albumTitle || '高分优选声音内容')
+const heroPreviewSubtitle = computed(() => heroPrimaryAlbum.value?.albumIntro || '精选热度、口碑与主题标签后，为当前页首屏挑出的重点推荐。')
+const heroPreviewCover = computed(() => heroPrimaryAlbum.value?.coverUrl || '')
+const heroContentStyle = computed(() => ({
+  transform: `translate3d(0, ${Math.max(pageScrollTop.value * -0.04, -10)}px, 0)`
+}))
+const heroVisualStyle = computed(() => ({
+  transform: `translate3d(0, ${Math.min(pageScrollTop.value * 0.08, 14)}px, 0)`
+}))
+const heroAuroraPrimaryStyle = computed(() => ({
+  transform: `translate3d(${Math.min(pageScrollTop.value * 0.03, 10)}px, ${Math.min(pageScrollTop.value * 0.08, 18)}px, 0)`
+}))
+const heroAuroraSecondaryStyle = computed(() => ({
+  transform: `translate3d(${Math.max(pageScrollTop.value * -0.04, -12)}px, ${Math.max(pageScrollTop.value * -0.03, -10)}px, 0)`
+}))
 
 const getRankList = async () => {
   if (!rankCategoryId.value) {
@@ -424,7 +527,8 @@ onReachBottom(async () => {
 })
 
 onPageScroll((event) => {
-  headerSolid.value = (event?.scrollTop || 0) >= 20
+  pageScrollTop.value = event?.scrollTop || 0
+  headerSolid.value = pageScrollTop.value >= 20
 })
 </script>
 
@@ -439,13 +543,13 @@ onPageScroll((event) => {
 }
 
 .recommend-top-bar-solid {
-  background: rgba(255, 255, 255, 0.92);
+  background: rgba(255, 255, 255, 0.98);
   backdrop-filter: blur(18px);
   -webkit-backdrop-filter: blur(18px);
 }
 
 .recommend-top-bar-transparent {
-  background: rgba(255, 255, 255, 0.42);
+  background: rgba(255, 255, 255, 0.92);
   backdrop-filter: blur(10px);
   -webkit-backdrop-filter: blur(10px);
 }
@@ -453,6 +557,28 @@ onPageScroll((event) => {
 .recommend-top-search {
   flex: 1;
   min-width: 0;
+}
+
+.recommend-top-search :deep(.glass-search-bar) {
+  background: #ffffff !important;
+  border: 1px solid #e5e7eb !important;
+  box-shadow: 0 6rpx 16rpx rgba(15, 23, 42, 0.06);
+}
+
+.recommend-top-search :deep(.glass-search-bar:focus-within) {
+  background: #ffffff !important;
+  border-color: #d1d5db !important;
+  box-shadow: 0 8rpx 20rpx rgba(15, 23, 42, 0.08);
+  transform: none;
+}
+
+.recommend-top-search :deep(.gui-search-input),
+.recommend-top-search :deep(.gui-search-icon) {
+  color: #111827 !important;
+}
+
+.recommend-top-search :deep(input)::placeholder {
+  color: #9ca3af;
 }
 
 .recommend-top-reserve {
@@ -466,7 +592,7 @@ onPageScroll((event) => {
   position: relative;
   min-height: calc(100vh - 44px - 160rpx);
   padding: 20rpx 18rpx 0;
-  background: linear-gradient(180deg, #eef6ff 0%, #f6f8fc 46%, #f4f5f8 100%);
+  background: #ffffff;
   overflow: hidden;
 }
 
@@ -481,93 +607,460 @@ onPageScroll((event) => {
 }
 
 .recommend-glow-left {
-  top: -100rpx;
-  left: -120rpx;
-  background: radial-gradient(circle, rgba(78, 145, 255, 0.22) 0%, rgba(78, 145, 255, 0) 72%);
+  top: -90rpx;
+  left: -110rpx;
+  background: radial-gradient(circle, rgba(255, 255, 255, 0.96) 0%, rgba(255, 255, 255, 0) 72%);
 }
 
 .recommend-glow-right {
-  top: 140rpx;
-  right: -140rpx;
-  background: radial-gradient(circle, rgba(255, 126, 166, 0.18) 0%, rgba(255, 126, 166, 0) 72%);
+  top: 160rpx;
+  right: -150rpx;
+  background: radial-gradient(circle, rgba(255, 255, 255, 0.96) 0%, rgba(255, 255, 255, 0) 72%);
 }
 
 .recommend-hero {
   position: relative;
   z-index: 1;
   overflow: hidden;
-  padding: 28rpx 26rpx 24rpx;
-  border-radius: 34rpx;
-  background: linear-gradient(135deg, rgba(255,255,255,0.96) 0%, rgba(247,250,255,0.98) 52%, rgba(240,246,255,0.98) 100%);
-  box-shadow: 0 18rpx 36rpx rgba(31, 41, 55, 0.08);
-  border: 1rpx solid rgba(255,255,255,0.9);
+  display: flex;
+  flex-direction: column;
+  gap: 28rpx;
+  padding: 30rpx 26rpx 28rpx;
+  border-radius: 36rpx;
+  background: #ffffff;
+  box-shadow:
+    rgba(15, 23, 42, 0.08) 0 18rpx 42rpx,
+    inset 0 1rpx 0 rgba(255, 255, 255, 0.9);
+  border: 1rpx solid rgba(229, 231, 235, 0.9);
 }
 
-.recommend-hero-decor {
+.recommend-hero-grid,
+.recommend-hero-noise,
+.recommend-hero-aurora,
+.recommend-hero-ring {
   position: absolute;
-  border-radius: 50%;
   pointer-events: none;
 }
 
-.recommend-hero-decor-left {
-  top: -56rpx;
-  left: -44rpx;
-  width: 180rpx;
-  height: 180rpx;
-  background: radial-gradient(circle, rgba(110, 169, 255, 0.16) 0%, rgba(110, 169, 255, 0) 72%);
+.recommend-hero-grid {
+  inset: 0;
+  opacity: 0.05;
+  background-image:
+    linear-gradient(rgba(15, 23, 42, 0.04) 1rpx, transparent 1rpx),
+    linear-gradient(90deg, rgba(15, 23, 42, 0.04) 1rpx, transparent 1rpx);
+  background-size: 44rpx 44rpx;
 }
 
-.recommend-hero-decor-right {
-  right: -50rpx;
-  bottom: -66rpx;
-  width: 210rpx;
-  height: 210rpx;
-  background: radial-gradient(circle, rgba(255, 164, 195, 0.16) 0%, rgba(255, 164, 195, 0) 72%);
+.recommend-hero-noise {
+  inset: 0;
+  opacity: 0.08;
+  background:
+    linear-gradient(120deg, rgba(15, 23, 42, 0.03) 0%, rgba(15, 23, 42, 0) 32%, rgba(15, 23, 42, 0.015) 100%);
+}
+
+.recommend-hero-aurora {
+  border-radius: 50%;
+  filter: blur(12px);
+  transition: transform 0.25s ease-out;
+}
+
+.recommend-hero-aurora-primary {
+  top: -80rpx;
+  left: -60rpx;
+  width: 240rpx;
+  height: 240rpx;
+  background: radial-gradient(circle, rgba(255, 255, 255, 1) 0%, rgba(255, 255, 255, 0) 72%);
+}
+
+.recommend-hero-aurora-secondary {
+  right: -90rpx;
+  bottom: -86rpx;
+  width: 280rpx;
+  height: 280rpx;
+  background: radial-gradient(circle, rgba(255, 255, 255, 1) 0%, rgba(255, 255, 255, 0) 76%);
+}
+
+.recommend-hero-ring {
+  display: none;
+}
+
+.recommend-hero-content,
+.recommend-hero-visual {
+  position: relative;
+  z-index: 1;
+  transition: transform 0.22s ease-out;
+}
+
+.recommend-hero-content {
+  max-width: 100%;
+}
+
+.recommend-hero-kicker-row {
+  display: flex;
+  align-items: center;
+  gap: 12rpx;
+  flex-wrap: wrap;
+}
+
+.recommend-hero-live-dot {
+  width: 14rpx;
+  height: 14rpx;
+  border-radius: 50%;
+  background: #1677ff;
+  box-shadow: 0 0 0 10rpx rgba(22, 119, 255, 0.12);
+  animation: heroPulse 1.8s ease-in-out infinite;
 }
 
 .recommend-hero-kicker {
-  position: relative;
-  display: block;
   font-size: 18rpx;
   font-weight: 700;
   letter-spacing: 3rpx;
-  color: #7fa7db;
+  color: #6b7280;
+}
+
+.recommend-hero-kicker-badge {
+  padding: 8rpx 16rpx;
+  border-radius: 999rpx;
+  font-size: 20rpx;
+  font-weight: 700;
+  color: #111827;
+  background: #ffffff;
+  border: 1rpx solid rgba(229, 231, 235, 0.9);
+  backdrop-filter: blur(12rpx);
+  -webkit-backdrop-filter: blur(12rpx);
 }
 
 .recommend-hero-title {
-  position: relative;
   display: block;
-  margin-top: 10rpx;
-  font-size: 48rpx;
-  line-height: 1.2;
+  margin-top: 14rpx;
+  font-size: 58rpx;
+  line-height: 1.14;
   font-weight: 700;
-  color: #1f2937;
+  color: #111827;
+  text-shadow: 0 8rpx 20rpx rgba(15, 23, 42, 0.14);
 }
 
 .recommend-hero-subtitle {
-  position: relative;
   display: block;
-  margin-top: 14rpx;
+  margin-top: 16rpx;
+  max-width: 640rpx;
   font-size: 24rpx;
-  line-height: 1.75;
-  color: #7b8798;
+  line-height: 1.78;
+  color: #6b7280;
 }
 
 .recommend-chip-row {
   display: flex;
   flex-wrap: wrap;
   gap: 14rpx;
-  margin-top: 18rpx;
+  margin-top: 24rpx;
 }
 
 .recommend-chip {
-  padding: 10rpx 20rpx;
+  padding: 12rpx 20rpx;
   border-radius: 999rpx;
   font-size: 22rpx;
-  color: #4a6fa7;
-  background: rgba(255, 255, 255, 0.78);
-  border: 1rpx solid rgba(141, 183, 245, 0.2);
-  box-shadow: inset 0 1rpx 0 rgba(255,255,255,0.88);
+  color: #4b5563;
+  background: #ffffff;
+  border: 1rpx solid rgba(229, 231, 235, 0.9);
+  box-shadow: inset 0 1rpx 0 rgba(255,255,255,0.9);
+}
+
+.recommend-hero-action-row {
+  display: flex;
+  align-items: center;
+  gap: 16rpx;
+  margin-top: 28rpx;
+  flex-wrap: wrap;
+}
+
+.recommend-hero-action {
+  min-width: 188rpx;
+  height: 76rpx;
+  padding: 0 28rpx;
+  border-radius: 999rpx;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10rpx;
+  transition: transform 0.18s ease, box-shadow 0.18s ease, opacity 0.18s ease;
+}
+
+.recommend-hero-action-primary {
+  background: #1677ff;
+  box-shadow: 0 16rpx 28rpx rgba(22, 119, 255, 0.18);
+}
+
+.recommend-hero-action-secondary {
+  background: #ffffff;
+  border: 1rpx solid rgba(229, 231, 235, 0.9);
+  backdrop-filter: blur(12rpx);
+  -webkit-backdrop-filter: blur(12rpx);
+}
+
+.recommend-hero-action-hover {
+  transform: translate3d(0, -2px, 0) scale(0.98);
+  opacity: 0.96;
+}
+
+.recommend-hero-action-text {
+  font-size: 24rpx;
+  font-weight: 700;
+  color: #111827;
+}
+
+.recommend-hero-action-text-light {
+  color: #121212;
+}
+
+.recommend-hero-insight-row {
+  display: flex;
+  gap: 14rpx;
+  margin-top: 24rpx;
+  flex-wrap: wrap;
+}
+
+.recommend-hero-insight {
+  min-width: 180rpx;
+  padding: 18rpx 20rpx;
+  border-radius: 24rpx;
+  background: #ffffff;
+  border: 1rpx solid rgba(229, 231, 235, 0.9);
+  backdrop-filter: blur(10rpx);
+  -webkit-backdrop-filter: blur(10rpx);
+}
+
+.recommend-hero-insight-value {
+  display: block;
+  font-size: 30rpx;
+  line-height: 1.2;
+  font-weight: 700;
+  color: #111827;
+}
+
+.recommend-hero-insight-label {
+  display: block;
+  margin-top: 8rpx;
+  font-size: 20rpx;
+  color: #6b7280;
+}
+
+.recommend-hero-visual {
+  min-height: 286rpx;
+}
+
+.recommend-hero-preview-card {
+  position: relative;
+  display: flex;
+  gap: 18rpx;
+  padding: 20rpx;
+  border-radius: 30rpx;
+  background: #ffffff;
+  border: 1rpx solid rgba(229, 231, 235, 0.9);
+  box-shadow: rgba(15, 23, 42, 0.08) 0 16rpx 32rpx;
+  backdrop-filter: blur(14rpx);
+  -webkit-backdrop-filter: blur(14rpx);
+}
+
+.recommend-hero-preview-cover-wrap {
+  position: relative;
+  width: 168rpx;
+  height: 168rpx;
+  flex-shrink: 0;
+}
+
+.recommend-hero-preview-cover {
+  width: 100%;
+  height: 100%;
+  border-radius: 24rpx;
+  background: #ffffff;
+}
+
+.recommend-hero-preview-cover-fallback {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: #ffffff;
+}
+
+.recommend-hero-preview-cover-text {
+  font-size: 42rpx;
+  font-weight: 700;
+  color: #111827;
+  letter-spacing: 2rpx;
+}
+
+.recommend-hero-preview-badge {
+  position: absolute;
+  left: 14rpx;
+  bottom: 14rpx;
+  padding: 6rpx 14rpx;
+  border-radius: 999rpx;
+  font-size: 18rpx;
+  font-weight: 700;
+  color: #121212;
+  background: #1677ff;
+  box-shadow: 0 10rpx 18rpx rgba(22, 119, 255, 0.2);
+}
+
+.recommend-hero-preview-body {
+  flex: 1;
+  min-width: 0;
+}
+
+.recommend-hero-preview-label {
+  display: block;
+  font-size: 20rpx;
+  font-weight: 700;
+  letter-spacing: 2rpx;
+  color: #6b7280;
+}
+
+.recommend-hero-preview-title {
+  display: -webkit-box;
+  overflow: hidden;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+  margin-top: 10rpx;
+  font-size: 30rpx;
+  line-height: 1.35;
+  font-weight: 700;
+  color: #111827;
+}
+
+.recommend-hero-preview-subtitle {
+  display: -webkit-box;
+  overflow: hidden;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+  margin-top: 10rpx;
+  font-size: 21rpx;
+  line-height: 1.6;
+  color: #6b7280;
+}
+
+.recommend-hero-wave-row {
+  display: flex;
+  align-items: flex-end;
+  gap: 8rpx;
+  height: 68rpx;
+  margin-top: 18rpx;
+}
+
+.recommend-hero-wave-bar {
+  width: 10rpx;
+  border-radius: 999rpx;
+  background: linear-gradient(180deg, rgba(102, 169, 255, 0.96) 0%, rgba(22, 119, 255, 0.36) 100%);
+  animation: heroWave 1.7s ease-in-out infinite;
+  transform-origin: center bottom;
+}
+
+.recommend-hero-preview-meta {
+  display: flex;
+  align-items: center;
+  gap: 10rpx;
+  margin-top: 16rpx;
+  flex-wrap: wrap;
+}
+
+.recommend-hero-preview-meta-text {
+  font-size: 20rpx;
+  color: #6b7280;
+}
+
+.recommend-hero-preview-meta-dot {
+  width: 8rpx;
+  height: 8rpx;
+  border-radius: 50%;
+  background: rgba(22, 119, 255, 0.8);
+}
+
+.recommend-hero-float-card {
+  position: absolute;
+  padding: 16rpx 18rpx;
+  border-radius: 22rpx;
+  background: #ffffff;
+  border: 1rpx solid rgba(229, 231, 235, 0.9);
+  box-shadow: rgba(15, 23, 42, 0.08) 0 12rpx 24rpx;
+  backdrop-filter: blur(14rpx);
+  -webkit-backdrop-filter: blur(14rpx);
+  animation: heroFloat 4.2s ease-in-out infinite;
+}
+
+.recommend-hero-float-card-top {
+  top: -10rpx;
+  right: 24rpx;
+}
+
+.recommend-hero-float-card-bottom {
+  left: 18rpx;
+  bottom: -12rpx;
+  animation-delay: 1.2s;
+}
+
+.recommend-hero-float-label {
+  display: block;
+  font-size: 18rpx;
+  color: #6b7280;
+}
+
+.recommend-hero-float-value {
+  display: block;
+  margin-top: 8rpx;
+  max-width: 240rpx;
+  font-size: 22rpx;
+  line-height: 1.45;
+  font-weight: 700;
+  color: #111827;
+}
+
+@keyframes heroPulse {
+  0%, 100% {
+    transform: scale(1);
+    opacity: 1;
+  }
+  50% {
+    transform: scale(1.08);
+    opacity: 0.74;
+  }
+}
+
+@keyframes heroWave {
+  0%, 100% {
+    transform: scaleY(0.88);
+    opacity: 0.75;
+  }
+  50% {
+    transform: scaleY(1.12);
+    opacity: 1;
+  }
+}
+
+@keyframes heroFloat {
+  0%, 100% {
+    transform: translate3d(0, 0, 0);
+  }
+  50% {
+    transform: translate3d(0, -10rpx, 0);
+  }
+}
+
+@media screen and (min-width: 768px) {
+  .recommend-hero {
+    flex-direction: row;
+    align-items: stretch;
+  }
+
+  .recommend-hero-content {
+    flex: 1.05;
+  }
+
+  .recommend-hero-visual {
+    flex: 0.95;
+    min-width: 0;
+    display: flex;
+    align-items: center;
+  }
 }
 
 .recommend-rank-card {
@@ -576,9 +1069,9 @@ onPageScroll((event) => {
   margin-top: 18rpx;
   padding: 22rpx 22rpx 18rpx;
   border-radius: 32rpx;
-  background: rgba(255, 255, 255, 0.95);
-  box-shadow: 0 18rpx 38rpx rgba(31, 41, 55, 0.08);
-  border: 1rpx solid rgba(255, 255, 255, 0.92);
+  background: #ffffff;
+  box-shadow: rgba(15, 23, 42, 0.08) 0 16rpx 32rpx;
+  border: 1rpx solid rgba(229, 231, 235, 0.9);
 }
 
 .recommend-rank-head {
@@ -604,7 +1097,7 @@ onPageScroll((event) => {
   padding-bottom: 10rpx;
   font-size: 28rpx;
   font-weight: 600;
-  color: #a1a7b2;
+  color: #9ca3af;
   transition: color 0.18s ease;
 }
 
@@ -620,7 +1113,7 @@ onPageScroll((event) => {
   bottom: 0;
   height: 5rpx;
   border-radius: 999rpx;
-  background: linear-gradient(90deg, #1677ff 0%, #68a7ff 100%);
+  background: linear-gradient(90deg, #66a9ff 0%, #1677ff 100%);
 }
 
 .recommend-rank-more {
@@ -630,7 +1123,8 @@ onPageScroll((event) => {
   gap: 6rpx;
   padding: 8rpx 14rpx;
   border-radius: 999rpx;
-  background: #f5f7fb;
+  background: #ffffff;
+  border: 1rpx solid rgba(229, 231, 235, 0.9);
 }
 
 .recommend-rank-more-hover {
@@ -645,7 +1139,7 @@ onPageScroll((event) => {
 .recommend-rank-caption {
   margin-top: 14rpx;
   font-size: 22rpx;
-  color: #9aa3af;
+  color: #6b7280;
 }
 
 .recommend-rank-list {
@@ -666,7 +1160,7 @@ onPageScroll((event) => {
 }
 
 .recommend-rank-item-hover {
-  background: rgba(247, 249, 252, 0.95);
+  background: #ffffff;
 }
 
 .recommend-rank-cover {
@@ -674,7 +1168,7 @@ onPageScroll((event) => {
   height: 116rpx;
   border-radius: 16rpx;
   flex-shrink: 0;
-  background: #edf2f7;
+  background: #ffffff;
 }
 
 .recommend-rank-index {
@@ -710,7 +1204,7 @@ onPageScroll((event) => {
   font-size: 32rpx;
   line-height: 1.35;
   font-weight: 700;
-  color: #1f2937;
+  color: #111827;
 }
 
 .recommend-rank-item-desc {
@@ -738,20 +1232,20 @@ onPageScroll((event) => {
   border-radius: 10rpx;
   font-size: 20rpx;
   font-weight: 700;
-  color: #5a7fc0;
-  background: #edf4ff;
+  color: #121212;
+  background: #1677ff;
 }
 
 .recommend-rank-item-dot {
   flex-shrink: 0;
   font-size: 20rpx;
-  color: #a3acb8;
+  color: #9ca3af;
 }
 
 .recommend-rank-item-play {
   min-width: 0;
   font-size: 22rpx;
-  color: #8b95a1;
+  color: #6b7280;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -765,7 +1259,8 @@ onPageScroll((event) => {
   align-items: center;
   justify-content: center;
   flex-shrink: 0;
-  background: #f3f5f8;
+  background: #ffffff;
+  border: 1rpx solid rgba(229, 231, 235, 0.9);
 }
 
 .recommend-rank-empty {
@@ -774,7 +1269,7 @@ onPageScroll((event) => {
   align-items: center;
   justify-content: center;
   font-size: 24rpx;
-  color: #9ca3af;
+  color: #6b7280;
 }
 
 .waterfall-layout {
@@ -811,21 +1306,21 @@ onPageScroll((event) => {
   margin-bottom: 18rpx;
   overflow: hidden;
   border-radius: 28rpx;
-  background: rgba(255, 255, 255, 0.92);
-  box-shadow: 0 18rpx 36rpx rgba(31, 41, 55, 0.08);
+  background: #ffffff;
+  box-shadow: rgba(15, 23, 42, 0.08) 0 14rpx 28rpx;
   transition: transform 0.22s ease, box-shadow 0.22s ease;
 }
 
 .recommend-note:active {
   transform: scale(0.98);
-  box-shadow: 0 10rpx 20rpx rgba(31, 41, 55, 0.06);
+  box-shadow: rgba(0, 0, 0, 0.24) 0 8rpx 16rpx;
 }
 
 .recommend-note-cover {
   position: relative;
   width: 100%;
   overflow: hidden;
-  background: #eef3ff;
+  background: #ffffff;
 }
 
 .recommend-note-image {
@@ -841,8 +1336,8 @@ onPageScroll((event) => {
   padding: 8rpx 16rpx;
   border-radius: 999rpx;
   font-size: 20rpx;
-  color: #fff;
-  background: rgba(15, 23, 42, 0.58);
+  color: #374151;
+  background: rgba(255, 255, 255, 0.96);
   backdrop-filter: blur(10px);
   -webkit-backdrop-filter: blur(10px);
 }
@@ -859,7 +1354,7 @@ onPageScroll((event) => {
   font-size: 28rpx;
   line-height: 1.45;
   font-weight: 600;
-  color: #1f2937;
+  color: #111827;
 }
 
 .recommend-note-desc {
@@ -870,7 +1365,7 @@ onPageScroll((event) => {
   margin-top: 12rpx;
   font-size: 22rpx;
   line-height: 1.65;
-  color: #7d8696;
+  color: #6b7280;
 }
 
 .recommend-note-author {
@@ -884,7 +1379,7 @@ onPageScroll((event) => {
   width: 16rpx;
   height: 16rpx;
   border-radius: 50%;
-  background: linear-gradient(135deg, #1677ff 0%, #64a8ff 100%);
+  background: #1677ff;
   box-shadow: 0 0 0 8rpx rgba(22, 119, 255, 0.1);
 }
 
@@ -892,7 +1387,7 @@ onPageScroll((event) => {
   flex: 1;
   min-width: 0;
   font-size: 21rpx;
-  color: #4b5563;
+  color: #6b7280;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -919,16 +1414,17 @@ onPageScroll((event) => {
 }
 
 .note-action-secondary {
-  background: #f4f6fa;
+  background: #ffffff;
+  border: 1rpx solid rgba(229, 231, 235, 0.9);
 }
 
 .note-action-primary {
-  background: rgba(22, 119, 255, 0.08);
+  background: rgba(22, 119, 255, 0.14);
 }
 
 .note-action-text {
   font-size: 22rpx;
-  color: #6b7280;
+  color: #4b5563;
 }
 
 .note-action-text-active {
