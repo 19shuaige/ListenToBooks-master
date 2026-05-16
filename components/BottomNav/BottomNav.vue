@@ -3,17 +3,22 @@
  <view style="padding-top: 50rpx" class="gui-relative bottom-nav-container animate-nav-in">
   <gui-flex :customClass="['gui-footer', 'glass-effect']" direction="row" :wrap="false" alignItems="center">
    <view class="gui-footer-icon-buttons nav-item-anim" style="animation-delay: 0.05s" @tap="navChange(0)">
-    <text :class="[currentIndex == 0 ? 'gui-primary-color' : 'nav-icon-gray', currentIndex == 0 ? 'nav-bounce' : '', 'gui-icons', 'gui-footer-icon-buttons-icon', 'gui-block']">&#xe608;</text>
-    <text :class="[currentIndex == 0 ? 'gui-primary-color' : 'nav-icon-gray', 'gui-icons', 'gui-footer-icon-buttons-text', 'gui-block']">首页</text>
+   <uni-icons
+     type="paperplane"
+     :color="currentIndex == 0 ? '#1677ff' : '#9ca3af'"
+     :size="22"
+     :class="[currentIndex == 0 ? 'nav-bounce' : '', 'gui-footer-icon-buttons-icon', 'gui-block']">
+   </uni-icons>
+   <text :class="[currentIndex == 0 ? 'gui-primary-color' : 'nav-icon-gray', 'gui-icons', 'gui-footer-icon-buttons-text', 'gui-block']">推荐</text>
    </view>
    <view class="gui-footer-icon-buttons nav-item-anim" style="animation-delay: 0.1s" @tap="navChange(1)">
    <uni-icons
-     type="paperplane"
+     type="bars"
      :color="currentIndex == 1 ? '#1677ff' : '#9ca3af'"
      :size="22"
      :class="[currentIndex == 1 ? 'nav-bounce' : '', 'gui-footer-icon-buttons-icon', 'gui-block']">
    </uni-icons>
-    <text :class="[currentIndex == 1 ? 'gui-primary-color' : 'nav-icon-gray', 'gui-icons', 'gui-footer-icon-buttons-text', 'gui-block']">推荐</text>
+   <text :class="[currentIndex == 1 ? 'gui-primary-color' : 'nav-icon-gray', 'gui-icons', 'gui-footer-icon-buttons-text', 'gui-block']">分类</text>
    </view>
    <view class="gui-footer-icon-buttons"></view>
    <view class="gui-footer-icon-buttons nav-item-anim" style="animation-delay: 0.15s" @tap="navChange(3)">
@@ -69,11 +74,11 @@ let navUnlockTimer: ReturnType<typeof setTimeout> | null = null
 const navListInfo = ref([
  {
   index: 0,
-  path: "/pages/index/index"
+  path: "/pages/recommend/recommend"
  },
  {
   index: 1,
-  path: "/pages/recommend/recommend"
+  path: "/pages/index/index"
  },
  {
   index: 2,

@@ -1,9 +1,16 @@
 {
 	"pages": [
 		{
+			"path": "pages/recommend/recommend",
+			"style": {
+				"navigationBarTitleText": "推荐",
+				"navigationStyle": "custom"
+			}
+		},
+		{
 			"path": "pages/index/index",
 			"style": {
-				"navigationBarTitleText": "首页",
+				"navigationBarTitleText": "分类",
 				"navigationStyle": "custom"
 			}
 		},
@@ -11,13 +18,6 @@
 			"path": "pages/live/live",
 			"style": {
 				"navigationBarTitleText": "直播"
-			}
-		},
-		{
-			"path": "pages/recommend/recommend",
-			"style": {
-				"navigationBarTitleText": "推荐",
-				"navigationStyle": "custom"
 			}
 		},
 		{
@@ -230,7 +230,11 @@
 		"current": 0,
 		"list": [
 			{
-				"name": "测试页-首页",
+				"name": "测试页-推荐",
+				"path": "pages/recommend/recommend"
+			},
+			{
+				"name": "测试页-分类",
 				"path": "pages/index/index"
 			},
 			{

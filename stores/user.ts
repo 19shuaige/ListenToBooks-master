@@ -24,7 +24,7 @@ export const useUserStore = defineStore("user", {
           const redirectUrl = getRedirectUrl()
           console.log('redirectUrl',redirectUrl)
           uni.redirectTo({
-            url: redirectUrl ? redirectUrl : "/pages/index/index"
+            url: redirectUrl ? redirectUrl : "/pages/recommend/recommend"
           })
           // 清空重定向url
           clearRedirectUrl()
@@ -108,7 +108,7 @@ export const useUserStore = defineStore("user", {
       this.token = ""
       // 回到首页
       uni.navigateTo({
-        url: '/pages/index/index'
+        url: '/pages/recommend/recommend'
       })
     }
   }
