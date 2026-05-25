@@ -14,7 +14,7 @@
         <view class="recommend-glow recommend-glow-left"></view>
         <view class="recommend-glow recommend-glow-right"></view>
 
-        <view class="recommend-hero animate-fade-up">
+        <!-- <view class="recommend-hero animate-fade-up">
           <view class="recommend-hero-grid"></view>
           <view class="recommend-hero-noise"></view>
           <view class="recommend-hero-aurora recommend-hero-aurora-primary" :style="heroAuroraPrimaryStyle"></view>
@@ -119,7 +119,7 @@
               </view>
             </view>
           </view>
-        </view>
+        </view> -->
 
         <view class="recommend-rank-card animate-fade-up">
           <view class="recommend-rank-head">
