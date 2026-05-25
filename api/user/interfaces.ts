@@ -12,6 +12,11 @@ export interface LoginResponseInterface {
   token: string;
   refreshToken?:string
 }
+// 手机号密码登录参数
+export interface PhonePasswordLoginParams {
+  phone: string;
+  password: string;
+}
 // 更新用户信息接口
 export interface UpdateUserInfoInterface {
   avatarUrl?: string,

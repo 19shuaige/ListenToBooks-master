@@ -1,7 +1,7 @@
 import { defineStore } from "pinia"
 import { TOKEN_KEY, USER_KEY } from "../utils/constant"
 import { order, user } from "../api"
-import { UpdateUserInfoInterface, UserInfoInterface, WechatUserInfoInterface } from "../api/user/interfaces"
+import { PhonePasswordLoginParams, UpdateUserInfoInterface, UserInfoInterface, WechatUserInfoInterface } from "../api/user/interfaces"
 import { clearRedirectUrl, getRedirectUrl } from "../utils/utils"
 
 export const useUserStore = defineStore("user", {
@@ -13,28 +13,40 @@ export const useUserStore = defineStore("user", {
     }
   },
   actions: {
+    async afterLoginSuccess() {
+      await this.getUserInfo()
+      const redirectUrl = getRedirectUrl()
+      uni.redirectTo({
+        url: redirectUrl ? redirectUrl : "/pages/recommend/recommend"
+      })
+      clearRedirectUrl()
+      await this.getAccountBalance()
+    },
     // 微信登陆
     loginWithWechat() {
       uni.login({
         provider: "weixin",
         success: async (loginRes:{code:string}) => {
           await this.getToken(loginRes.code)
-          // 登录成功，获取用户信息
-          await this.getUserInfo()
-          const redirectUrl = getRedirectUrl()
-          console.log('redirectUrl',redirectUrl)
-          uni.redirectTo({
-            url: redirectUrl ? redirectUrl : "/pages/recommend/recommend"
-          })
-          // 清空重定向url
-          clearRedirectUrl()
-          // 获取账户可用余额
-          await this.getAccountBalance()
+          await this.afterLoginSuccess()
         },
         fail: (err:any) => {
           console.log(err)
         }
       })
+    },
+    async loginWithPhonePassword(params: PhonePasswordLoginParams) {
+      try {
+        const res = await user.phoneLogin(params)
+        if (res.data.token) {
+          uni.setStorageSync(TOKEN_KEY, res.data.token)
+          this.token = res.data.token
+          await this.afterLoginSuccess()
+        }
+      } catch (error) {
+        console.log(error)
+        throw error
+      }
     },
     // 获取token
     async getToken(code: string) {

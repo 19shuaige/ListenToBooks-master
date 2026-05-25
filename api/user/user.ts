@@ -1,5 +1,5 @@
 import Service from '../../utils/request'
-import { LoginResponseInterface, UpdateUserInfoInterface, UserInfoInterface } from "./interfaces"
+import { LoginResponseInterface, PhonePasswordLoginParams, UpdateUserInfoInterface, UserInfoInterface } from "./interfaces"
 class CateGory extends Service {
   /**
    * @description 小程序登录
@@ -8,6 +8,15 @@ class CateGory extends Service {
     getLogin(code: string) {
       return this.get<LoginResponseInterface>({
         url: `/api/user/wxLogin/wxLogin/${code}`,
+      })
+    }
+  /**
+   * @description 手机号密码登录
+   */
+    phoneLogin(data: PhonePasswordLoginParams) {
+      return this.post<LoginResponseInterface>({
+        url: `/api/user/wxLogin/phoneLogin`,
+        data,
       })
     }
   /**

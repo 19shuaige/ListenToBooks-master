@@ -8,10 +8,10 @@
         <view style="margin-top: 80rpx">
           <form @submit="submit">
             <view>
-              <text class="gui-text-small gui-color-gray">账户</text>
+              <text class="gui-text-small gui-color-gray">手机号</text>
             </view>
             <view class="gui-border-b">
-              <input type="text" class="gui-form-input" name="username" placeholder="登录账户" />
+              <input type="number" class="gui-form-input" name="phone" placeholder="请输入手机号" maxlength="11" />
             </view>
             <view class="gui-margin-top">
               <text class="gui-text-small gui-color-gray">密码</text>
@@ -58,32 +58,52 @@
 </template>
 <script setup lang="ts">
 import { ref } from "vue"
-import { storeToRefs } from 'pinia'
 import { useUserStore } from '../../stores/user'
 import GuiImage from "../../Grace6/components/gui-image.vue"
 import UniPopup from "../../uni_modules/uni-popup/components/uni-popup/uni-popup.vue"
-import { getCurrentPageInfo } from "../../utils/utils"
 /* 响应式数据 */
 const wxLoginDialogRef = ref<InstanceType<typeof UniPopup>>()
 const userStore = useUserStore()
-const props = defineProps({
-  redirect:{
-    type: String,
-    default: ''
-  }
-})
-// 分类导航
 
 /* 方法 */
 // 打开微信登陆弹窗
 const openWxLoginDialog = () => {
-  wxLoginDialogRef.value.open()
+  wxLoginDialogRef.value?.open()
 }
 
-// 使用微信登陆
+const loginbymsg = () => {
+  uni.showToast({
+    title: "短信登录暂未开放",
+    icon: "none"
+  })
+}
 
+const submit = async (event: { detail?: { value?: Record<string, string> } }) => {
+  const formValue = event.detail?.value ?? {}
+  const phone = (formValue.phone || "").trim()
+  const password = (formValue.password || "").trim()
 
-//获取用户个人信息方法
+  if (!/^1\d{10}$/.test(phone)) {
+    uni.showToast({
+      title: "请输入正确手机号",
+      icon: "none"
+    })
+    return
+  }
+
+  if (!password) {
+    uni.showToast({
+      title: "请输入密码",
+      icon: "none"
+    })
+    return
+  }
+
+  await userStore.loginWithPhonePassword({
+    phone,
+    password
+  })
+}
 
 /* 生命周期 */
 </script>
